@@ -1,4 +1,4 @@
-# Hadoop.lab
+# big-data.lab
 
 A lightweight Hadoop ecosystem on Docker for educational and research purposes.
 
@@ -9,7 +9,7 @@ It is designed for **teachers and students** as an educational tool, while **uni
 
 ## Project structure
 ```
-hadoop.lab
+big-data.lab
 ├── COMMERCIAL_LICENSE.md
 ├── CONTRIBUTING.md
 ├── docker-compose.yaml
@@ -52,8 +52,8 @@ You only need an Ubuntu Linux virtual machine (version 24.04 or later) before st
 To get started, download a stable version from this GitHub repository and run the `ubuntu-vm-setup.sh` script in the Terminal:
 
 ```shell
-alice@u24arm64:~$ cd /PATH/TO/hadoop.lab
-alice@u24arm64:/PATH/TO/hadoop.lab$ ./ubuntu-vm-setup.sh
+alice@u24arm64:~$ cd /PATH/TO/big-data.lab
+alice@u24arm64:/PATH/TO/big-data.lab$ ./ubuntu-vm-setup.sh
 ```
 
 After the script completes successfully, you will need to **reboot the virtual machine** to apply all changes.
@@ -80,12 +80,12 @@ Errors can occur while running `ubuntu-vm-setup.sh`, and new features may be add
 You can re-run `ubuntu-vm-setup.sh` to reset your Hadoop environment at any time, but it’s recommended to **completely clean up old Docker data first**.
 
 ```shell
-alice@u24arm64:~$ cd /PATH/TO/OLD/hadoop.lab
-alice@u24arm64:/PATH/TO/OLD/hadoop.lab$ docker compose down
-alice@u24arm64:/PATH/TO/OLD/hadoop.lab$ docker volume prune -a
-alice@u24arm64:/PATH/TO/OLD/hadoop.lab$ docker image prune -a
-alice@u24arm64:/PATH/TO/OLD/hadoop.lab$ cd /PATH/TO/NEW/hadoop.lab
-alice@u24arm64:/PATH/TO/NEW/hadoop.lab$ ./ubuntu-vm-setup.sh
+alice@u24arm64:~$ cd /PATH/TO/OLD/big-data.lab
+alice@u24arm64:/PATH/TO/OLD/big-data.lab$ docker compose down
+alice@u24arm64:/PATH/TO/OLD/big-data.lab$ docker volume prune -a
+alice@u24arm64:/PATH/TO/OLD/big-data.lab$ docker image prune -a
+alice@u24arm64:/PATH/TO/OLD/big-data.lab$ cd /PATH/TO/NEW/big-data.lab
+alice@u24arm64:/PATH/TO/NEW/big-data.lab$ ./ubuntu-vm-setup.sh
 ```
 
 > [!NOTE]
@@ -126,16 +126,16 @@ This step is optional and intended only for debugging purposes.
 By default, Docker Compose will automatically build the image before launching containers.
 
 ```shell
-bob@u24amd64:~$ cd /PATH/TO/hadoop.lab
-bob@u24amd64:/PATH/TO/hadoop.lab$ docker build -t hadooplab/hadoop ./hadoop
+bob@u24amd64:~$ cd /PATH/TO/big-data.lab
+bob@u24amd64:/PATH/TO/big-data.lab$ docker build -t hadooplab/hadoop ./hadoop
 ```
 
 **<ins>Start a 4-Node Hadoop Cluster and Hadoop Client via Docker Compose</ins>**  
 The following instructions will build the Hadoop Docker image (if it does not already exist) and then start a 4-node Hadoop cluster (1 master + 3 workers) along with a Hadoop client.
 
 ```shell
-bob@u24amd64:~$ cd /PATH/TO/hadoop.lab
-bob@u24amd64:/PATH/TO/hadoop.lab$ docker compose up --build -d
+bob@u24amd64:~$ cd /PATH/TO/big-data.lab
+bob@u24amd64:/PATH/TO/big-data.lab$ docker compose up --build -d
 ```
 
 Once all Docker containers are running, you can access the Hadoop web UIs:
@@ -159,10 +159,10 @@ The following commands will shut down the Hadoop cluster and client and remove a
 However, data and logs are preserved in persistent Docker volumes. When you start the cluster again, it will automatically reuse those volumes.
 
 ```shell
-bob@u24amd64:~$ cd /PATH/TO/hadoop.lab
-bob@u24amd64:/PATH/TO/hadoop.lab$ docker compose down
+bob@u24amd64:~$ cd /PATH/TO/big-data.lab
+bob@u24amd64:/PATH/TO/big-data.lab$ docker compose down
 ...
-bob@u24amd64:/PATH/TO/hadoop.lab$ docker compose up -d
+bob@u24amd64:/PATH/TO/big-data.lab$ docker compose up -d
 ```
 
 ---

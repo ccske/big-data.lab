@@ -1,4 +1,4 @@
-# Contributing to Hadoop.lab
+# Contributing to big-data.lab
 
 Thank you for your interest in contributing!
 By submitting contributions to this project, you agree to the following:
@@ -17,5 +17,5 @@ By submitting contributions to this project, you agree to the following:
 4. **License Compatibility**  
    Ensure that any third-party code you submit is compatible with AGPL v3 or otherwise clearly indicated.
 
-Thank you for helping improve Hadoop.lab!
+Thank you for helping improve big-data.lab!
 

@@ -1,10 +1,10 @@
-name: hadooplab
+name: big-data.lab
 
 services:
   hadoop-master:
     build:
       context: ./hadoop
-    image: hadooplab/hadoop
+    image: big-data.lab/hadoop
     container_name: hadoop-master
     restart: unless-stopped
     hostname: hadoop-master
@@ -24,7 +24,7 @@ services:
   hadoop-worker1:
     build:
       context: ./hadoop
-    image: hadooplab/hadoop
+    image: big-data.lab/hadoop
     container_name: hadoop-worker1
     depends_on:
       hadoop-master:
@@ -46,7 +46,7 @@ services:
   hadoop-worker2:
     build:
       context: ./hadoop
-    image: hadooplab/hadoop
+    image: big-data.lab/hadoop
     container_name: hadoop-worker2
     depends_on:
       hadoop-master:
@@ -68,7 +68,7 @@ services:
   hadoop-worker3:
     build:
       context: ./hadoop
-    image: hadooplab/hadoop
+    image: big-data.lab/hadoop
     container_name: hadoop-worker3
     depends_on:
       hadoop-master:
@@ -90,7 +90,7 @@ services:
   hadoop-client:
     build:
       context: ./hadoop
-    image: hadooplab/hadoop
+    image: big-data.lab/hadoop
     container_name: hadoop-client
     restart: unless-stopped
     hostname: hadoop-client
@@ -106,7 +106,7 @@ services:
   nginx:
     build:
       context: ./nginx
-    image: hadooplab/nginx
+    image: big-data.lab/nginx
     container_name: nginx
     depends_on: 
       hadoop-master:
@@ -129,16 +129,27 @@ services:
 
 volumes:
   global_conf:
+    name: big-data.lab__global_conf
   hadoop_master_data:
+    name: big-data.lab__hadoop_master_data
   hadoop_master_logs:
+    name: big-data.lab__hadoop_master_logs
   hadoop_worker1_data:
+    name: big-data.lab__hadoop_worker1_data
   hadoop_worker1_logs:
+    name: big-data.lab__hadoop_worker1_logs
   hadoop_worker2_data:
+    name: big-data.lab__hadoop_worker2_data
   hadoop_worker2_logs:
+    name: big-data.lab__hadoop_worker2_logs
   hadoop_worker3_data:
+    name: big-data.lab__hadoop_worker3_data
   hadoop_worker3_logs:
+    name: big-data.lab__hadoop_worker3_logs
   hadoop_client_home:
+    name: big-data.lab__hadoop_client_home
 
 networks:
   net:
     driver: bridge
+    name: big-data.lab__net
