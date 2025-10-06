@@ -1,18 +1,22 @@
 <configuration>
   <property>
-    <name>yarn.resourcemanager.hostname</name>
-    <value>hadoop-master</value>
+    <name>yarn.log-aggregation-enable</name>
+    <value>true</value>
   </property>
   <property>
-    <name>yarn.resourcemanager.webapp.address</name>
-    <value>${yarn.resourcemanager.hostname}:8088</value>
+    <name>yarn.log.server.url</name>
+    <value>http://hadoop-master:19888/jobhistory/logs</value>
   </property>
   <property>
     <name>yarn.nodemanager.aux-services</name>
     <value>mapreduce_shuffle</value>
   </property>
   <property>
-    <name>yarn.log-aggregation-enable</name>
-    <value>true</value>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>hadoop-master</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.webapp.address</name>
+    <value>${yarn.resourcemanager.hostname}:8088</value>
   </property>
 </configuration>

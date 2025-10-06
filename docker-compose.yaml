@@ -4,19 +4,24 @@ services:
   hadoop-master:
     build:
       context: ./hadoop
-    image: big-data.lab/hadoop
+    image: big-data.lab/hadoop:latest
     container_name: hadoop-master
     restart: unless-stopped
     hostname: hadoop-master
+    env_file:
+      - path: ./.env
+        required: false
     environment:
       MASTER: "hadoop-master"
     command: ["/usr/local/bin/entrypoint-master.sh"]
-    expose:
-      - 9870          # HDFS NameNode UI
-      - 8088          # YARN ResourceManager UI
-      - 19888         # MapReduce JobHistory Server UI
+    ports:
+      - 9870:9870    # HDFS NameNode UI
+      - 8020:8020    # HDFS NameNode RPC
+      - 8088:8088    # YARN ResourceManager UI
+      - 8032:8032    # YARN ResourceManager AMI
+      - 19888:19888  # MapReduce JobHistory Server UI
+      - 10020:10020  # MapReduce JobHistory Server IPC
     volumes:
-      - global_conf:/volumes/conf
       - hadoop_master_data:/volumes/data
       - hadoop_master_logs:/volumes/logs
     networks: [net]
@@ -24,21 +29,25 @@ services:
   hadoop-worker1:
     build:
       context: ./hadoop
-    image: big-data.lab/hadoop
+    image: big-data.lab/hadoop:latest
     container_name: hadoop-worker1
     depends_on:
-      hadoop-master:
-        condition: service_started
+      - hadoop-master
     restart: unless-stopped
     hostname: hadoop-worker1
+    env_file:
+      - path: ./.env
+        required: false
     environment:
       MASTER: "hadoop-master"
+      AM_RPC: "43210-43219"
     command: ["/usr/local/bin/entrypoint-worker.sh"]
     expose:
-      - 9864          # HDFS DataNode UI
-      - 8042          # YARN NodeManager UI
+      - 9864  # HDFS DataNode UI
+      - 8042  # YARN NodeManager UI
+    ports:
+      - 43210-43219:43210-43219  # MapReduce AM RPC
     volumes:
-      - global_conf:/volumes/conf
       - hadoop_worker1_data:/volumes/data
       - hadoop_worker1_logs:/volumes/logs
     networks: [net]
@@ -46,21 +55,25 @@ services:
   hadoop-worker2:
     build:
       context: ./hadoop
-    image: big-data.lab/hadoop
+    image: big-data.lab/hadoop:latest
     container_name: hadoop-worker2
     depends_on:
-      hadoop-master:
-        condition: service_started
+      - hadoop-master
     restart: unless-stopped
     hostname: hadoop-worker2
+    env_file:
+      - path: ./.env
+        required: false
     environment:
       MASTER: "hadoop-master"
+      AM_RPC: "43220-43229"
     command: ["/usr/local/bin/entrypoint-worker.sh"]
     expose:
-      - 9864          # HDFS DataNode UI
-      - 8042          # YARN NodeManager UI
+      - 9864  # HDFS DataNode UI
+      - 8042  # YARN NodeManager UI
+    ports:
+      - 43220-43229:43220-43229  # MapReduce AM RPC
     volumes:
-      - global_conf:/volumes/conf
       - hadoop_worker2_data:/volumes/data
       - hadoop_worker2_logs:/volumes/logs
     networks: [net]
@@ -68,39 +81,27 @@ services:
   hadoop-worker3:
     build:
       context: ./hadoop
-    image: big-data.lab/hadoop
+    image: big-data.lab/hadoop:latest
     container_name: hadoop-worker3
     depends_on:
-      hadoop-master:
-        condition: service_started
+      - hadoop-master
     restart: unless-stopped
     hostname: hadoop-worker3
+    env_file:
+      - path: ./.env
+        required: false
     environment:
       MASTER: "hadoop-master"
+      AM_RPC: "43230-43239"
     command: ["/usr/local/bin/entrypoint-worker.sh"]
     expose:
-      - 9864          # HDFS DataNode UI
-      - 8042          # YARN NodeManager UI
+      - 9864  # HDFS DataNode UI
+      - 8042  # YARN NodeManager UI
+    ports:
+      - 43230-43239:43230-43239  # MapReduce AM RPC
     volumes:
-      - global_conf:/volumes/conf
       - hadoop_worker3_data:/volumes/data
       - hadoop_worker3_logs:/volumes/logs
-    networks: [net]
-
-  hadoop-client:
-    build:
-      context: ./hadoop
-    image: big-data.lab/hadoop
-    container_name: hadoop-client
-    restart: unless-stopped
-    hostname: hadoop-client
-    environment:
-      MASTER: "hadoop-master"
-    command: ["/usr/local/bin/entrypoint-client.sh"]
-    volumes:
-      - global_conf:/volumes/conf
-      - hadoop_client_home:/home
-      - /bridge:/bridge
     networks: [net]
 
   nginx:
@@ -109,47 +110,27 @@ services:
     image: big-data.lab/nginx
     container_name: nginx
     depends_on: 
-      hadoop-master:
-        condition: service_started
-      hadoop-worker1:
-        condition: service_started
-      hadoop-worker2:
-        condition: service_started
-      hadoop-worker3:
-        condition: service_started
+      - hadoop-master
+      - hadoop-worker1
+      - hadoop-worker2
+      - hadoop-worker3
     restart: unless-stopped
     hostname: nginx
     ports:
-      - 9870:9870     # HDFS NameNode UI
-      - 8088:8088     # YARN ResourceManager UI
-      - 19888:19888   # MapReduce JobHistory Server UI
-      - 9864:9864     # HDFS DataNode UI
-      - 8042:8042     # YARN NodeManager UI
+      - 9864:9864  # HDFS DataNode UI
+      - 8042:8042  # YARN NodeManager UI
     networks: [net]
 
 volumes:
-  global_conf:
-    name: big-data.lab__global_conf
   hadoop_master_data:
-    name: big-data.lab__hadoop_master_data
   hadoop_master_logs:
-    name: big-data.lab__hadoop_master_logs
   hadoop_worker1_data:
-    name: big-data.lab__hadoop_worker1_data
   hadoop_worker1_logs:
-    name: big-data.lab__hadoop_worker1_logs
   hadoop_worker2_data:
-    name: big-data.lab__hadoop_worker2_data
   hadoop_worker2_logs:
-    name: big-data.lab__hadoop_worker2_logs
   hadoop_worker3_data:
-    name: big-data.lab__hadoop_worker3_data
   hadoop_worker3_logs:
-    name: big-data.lab__hadoop_worker3_logs
-  hadoop_client_home:
-    name: big-data.lab__hadoop_client_home
 
 networks:
   net:
     driver: bridge
-    name: big-data.lab__net
