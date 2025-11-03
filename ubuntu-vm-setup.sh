@@ -76,12 +76,29 @@ HADOOP_HOME="/opt/hadoop"
 if [[ ! -d ${HADOOP_HOME} ]]; then
     sudo docker cp -aL hadoop-master:${HADOOP_HOME} $(realpath "$(dirname "${HADOOP_HOME}")")
 fi
-HADOOP_BIN="${HADOOP_HOME}/bin"
-if [[ ":$PATH:" != *":${HADOOP_BIN}:"* ]]; then
+
+# Set up Apache Pig
+PIG_HOME="/opt/pig"
+if [[ ! -d ${PIG_HOME} ]]; then
+    PIG_VERSION=0.18.0
+    PIG_TGZ=pig-${PIG_VERSION}.tar.gz
+    curl -fSL "https://downloads.apache.org/pig/pig-${PIG_VERSION}/${PIG_TGZ}" -o /tmp/${PIG_TGZ}
+    sudo tar -xzf /tmp/${PIG_TGZ} -C /opt
+    sudo ln -s pig-${PIG_VERSION} ${PIG_HOME}
+    rm -f /tmp/${PIG_TGZ}
+    PIG_CONF="${PIG_HOME}/conf/pig.properties"
+    if [[ -f "${PIG_CONF}" ]]; then
+        sudo sed -i 's/^pig\.ats\.enabled=true/pig.ats.enabled=false/' "${PIG_CONF}"
+    fi
+fi
+
+# Set up PATH for big-data.lab
+BIG_DATA_LAB_BIN="${HADOOP_HOME}/bin:${PIG_HOME}/bin"
+if [[ ":$PATH:" != *":${BIG_DATA_LAB_BIN}:"* ]]; then
     echo | tee -a "$HOME/.bashrc" > /dev/null
     printf "%s\n%s\n%s\n" \
-        "if [[ \":\$PATH:\" != *\":${HADOOP_BIN}:\"* ]]; then" \
-        "    export PATH=\"${HADOOP_BIN}:\$PATH\"" \
+        "if [[ \":\$PATH:\" != *\":${BIG_DATA_LAB_BIN}:\"* ]]; then" \
+        "    export PATH=\"${BIG_DATA_LAB_BIN}:\$PATH\"" \
         "fi" | \
         tee -a "$HOME/.bashrc" > /dev/null
 fi
