@@ -107,7 +107,7 @@ services:
   nginx:
     build:
       context: ./nginx
-    image: big-data.lab/nginx
+    image: big-data.lab/nginx:latest
     container_name: nginx
     depends_on: 
       - hadoop-master

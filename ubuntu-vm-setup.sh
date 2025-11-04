@@ -52,6 +52,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli c
 sudo usermod -aG docker ${USER_NAME}
 
 # Build and launch Hadoop ecosystem containers via Docker Compose
+sg docker -c "docker build -t big-data.lab/base:latest ${PROJECT_DIR}/base"
 printf "USER_NAME=%s\nUSER_ID=%s\nGROUP_NAME=%s\nGROUP_ID=%s\n" \
     "${USER_NAME}" "${USER_ID}" "${GROUP_NAME}" "${GROUP_ID}" | \
     tee "${PROJECT_DIR}/.env" > /dev/null
@@ -71,28 +72,16 @@ if ! grep -qxF "${JAVA_HOME_ENTRY}" "$HOME/.bashrc"; then
     echo "${JAVA_HOME_ENTRY}" | tee -a "$HOME/.bashrc" > /dev/null
 fi
 
-# Set up as Hadoop client
+# Set up client environment
 HADOOP_HOME="/opt/hadoop"
 if [[ ! -d ${HADOOP_HOME} ]]; then
     sudo docker cp -aL hadoop-master:${HADOOP_HOME} $(realpath "$(dirname "${HADOOP_HOME}")")
 fi
-
-# Set up Apache Pig
 PIG_HOME="/opt/pig"
 if [[ ! -d ${PIG_HOME} ]]; then
-    PIG_VERSION=0.18.0
-    PIG_TGZ=pig-${PIG_VERSION}.tar.gz
-    curl -fSL "https://downloads.apache.org/pig/pig-${PIG_VERSION}/${PIG_TGZ}" -o /tmp/${PIG_TGZ}
-    sudo tar -xzf /tmp/${PIG_TGZ} -C /opt
-    sudo ln -s pig-${PIG_VERSION} ${PIG_HOME}
-    rm -f /tmp/${PIG_TGZ}
-    PIG_CONF="${PIG_HOME}/conf/pig.properties"
-    if [[ -f "${PIG_CONF}" ]]; then
-        sudo sed -i 's/^pig\.ats\.enabled=true/pig.ats.enabled=false/' "${PIG_CONF}"
-    fi
+    sudo docker cp -aL hadoop-master:${PIG_HOME} $(realpath "$(dirname "${PIG_HOME}")")
+    sudo sed -i 's/^pig\.ats\.enabled=true/pig.ats.enabled=false/' "${PIG_HOME}/conf/pig.properties"
 fi
-
-# Set up PATH for big-data.lab
 BIG_DATA_LAB_BIN="${HADOOP_HOME}/bin:${PIG_HOME}/bin"
 if [[ ":$PATH:" != *":${BIG_DATA_LAB_BIN}:"* ]]; then
     echo | tee -a "$HOME/.bashrc" > /dev/null
