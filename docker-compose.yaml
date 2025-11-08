@@ -121,6 +121,58 @@ services:
       - 8042:8042  # YARN NodeManager UI
     networks: [net]
 
+  mysql:
+    build:
+      context: ./mysql
+    image: big-data.lab/mysql:latest
+    container_name: mysql
+    restart: unless-stopped
+    hostname: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks: [net]
+
+  hive-metastore:
+    build:
+      context: .
+      dockerfile: hive/Dockerfile
+    image: big-data.lab/hive:latest
+    container_name: hive-metastore
+    depends_on:
+      - mysql
+      - hadoop-master
+    restart: unless-stopped
+    hostname: hive-metastore
+    environment:
+      MASTER: "hadoop-master"
+    command: ["/usr/local/bin/entrypoint-metastore.sh"]
+    ports:
+      - 9083:9083  # Metastore Thrift
+    networks: [net]
+
+  hive-server2:
+    build:
+      context: .
+      dockerfile: hive/Dockerfile
+    image: big-data.lab/hive:latest
+    container_name: hive-server2
+    depends_on:
+      - hive-metastore
+      - hadoop-master
+    restart: unless-stopped
+    hostname: hive-server2
+    environment:
+      MASTER: "hadoop-master"
+    command: ["/usr/local/bin/entrypoint-server2.sh"]
+    ports:
+      - 10000:10000  # HS2 Thrift
+      - 10002:10002  # HS2 Web UI
+    networks: [net]
+
 volumes:
   hadoop_master_data:
   hadoop_master_logs:
@@ -130,6 +182,7 @@ volumes:
   hadoop_worker2_logs:
   hadoop_worker3_data:
   hadoop_worker3_logs:
+  mysql_data:
 
 networks:
   net:

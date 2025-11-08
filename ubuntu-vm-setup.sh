@@ -57,7 +57,7 @@ printf "USER_NAME=%s\nUSER_ID=%s\nGROUP_NAME=%s\nGROUP_ID=%s\n" \
     "${USER_NAME}" "${USER_ID}" "${GROUP_NAME}" "${GROUP_ID}" | \
     tee "${PROJECT_DIR}/.env" > /dev/null
 sg docker -c "docker compose --project-directory ${PROJECT_DIR} up --build -d"
-HOSTS_ENTRY="127.0.0.1 hadoop-master hadoop-worker1 hadoop-worker2 hadoop-worker3"
+HOSTS_ENTRY="127.0.0.1 hadoop-master hadoop-worker1 hadoop-worker2 hadoop-worker3 hive-metastore hive-server2"
 if ! grep -qxF "${HOSTS_ENTRY}" "/etc/hosts"; then
     echo | sudo tee -a "/etc/hosts" > /dev/null
     echo "${HOSTS_ENTRY}" | sudo tee -a "/etc/hosts" > /dev/null
@@ -73,6 +73,11 @@ if ! grep -qxF "${JAVA_HOME_ENTRY}" "$HOME/.bashrc"; then
 fi
 
 # Set up client environment
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-client
+MYSQL_CLIENT_CNF=".my.cnf"
+if [[ ! -f "$HOME/${MYSQL_CLIENT_CNF}" ]]; then
+    cp -f ${PROJECT_DIR}/mysql/client/${MYSQL_CLIENT_CNF} $HOME/
+fi
 HADOOP_HOME="/opt/hadoop"
 if [[ ! -d ${HADOOP_HOME} ]]; then
     sudo docker cp -aL hadoop-master:${HADOOP_HOME} $(realpath "$(dirname "${HADOOP_HOME}")")
@@ -82,7 +87,11 @@ if [[ ! -d ${PIG_HOME} ]]; then
     sudo docker cp -aL hadoop-master:${PIG_HOME} $(realpath "$(dirname "${PIG_HOME}")")
     sudo sed -i 's/^pig\.ats\.enabled=true/pig.ats.enabled=false/' "${PIG_HOME}/conf/pig.properties"
 fi
-BIG_DATA_LAB_BIN="${HADOOP_HOME}/bin:${PIG_HOME}/bin"
+HIVE_HOME="/opt/hive"
+if [[ ! -d ${HIVE_HOME} ]]; then
+    sudo docker cp -aL hive-server2:${HIVE_HOME} $(realpath "$(dirname "${HIVE_HOME}")")
+fi
+BIG_DATA_LAB_BIN="${HADOOP_HOME}/bin:${PIG_HOME}/bin:${HIVE_HOME}/bin"
 if [[ ":$PATH:" != *":${BIG_DATA_LAB_BIN}:"* ]]; then
     echo | tee -a "$HOME/.bashrc" > /dev/null
     printf "%s\n%s\n%s\n" \

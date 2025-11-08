@@ -20,17 +20,22 @@ RUN set -eux && \
     curl -fSL "https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/${HADOOP_TGZ}" | tar -xz -C /opt && \
     ln -s hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
 
+ENV PIG_VERSION=0.18.0
+ENV PIG_HOME=/opt/pig
+RUN set -eux && \
+    curl -fSL "https://downloads.apache.org/pig/pig-${PIG_VERSION}/pig-${PIG_VERSION}.tar.gz" | tar -xz -C /opt && \
+    ln -s pig-${PIG_VERSION} ${PIG_HOME}
+
 ENV HIVE_VERSION=4.0.1
 ENV HIVE_HOME=/opt/hive
 RUN set -eux && \
     curl -fSL "https://downloads.apache.org/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz" | tar -xz -C /opt && \
     ln -s apache-hive-${HIVE_VERSION}-bin ${HIVE_HOME}
 
-ENV PIG_VERSION=0.18.0
-ENV PIG_HOME=/opt/pig
+ENV MYSQL_CONNECTOR_J_VERSION=8.4.0
 RUN set -eux && \
-    curl -fSL "https://downloads.apache.org/pig/pig-${PIG_VERSION}/pig-${PIG_VERSION}.tar.gz" | tar -xz -C /opt && \
-    ln -s pig-${PIG_VERSION} ${PIG_HOME}
+    MYSQL_CONNECTOR_J_JAR="mysql-connector-j-${MYSQL_CONNECTOR_J_VERSION}.jar" && \
+    curl -fSL "https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/${MYSQL_CONNECTOR_J_VERSION}/${MYSQL_CONNECTOR_J_JAR}" -o "${HIVE_HOME}/lib/${MYSQL_CONNECTOR_J_JAR}"
 
 RUN set -eux && \
     groupadd -r supergroup && \
@@ -38,3 +43,5 @@ RUN set -eux && \
     useradd -G supergroup -r -M yarn && \
     useradd -G supergroup -r -M mapred && \
     useradd -G supergroup -r -M hive
+
+COPY entrypoint/* /usr/local/bin/

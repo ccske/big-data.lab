@@ -12,7 +12,7 @@ if [[ -n "${USER_NAME-}" && -n "${USER_ID-}" && -n "${GROUP_NAME-}" && -n "${GRO
     getent passwd ${USER_NAME} > /dev/null 2>&1 || useradd -u ${USER_ID} -g ${GROUP_NAME} -G supergroup -M ${USER_NAME}
 fi
 
-if [[ ! -d "${HADOOP_VAR_DIR}/tmp/dfs/name/current" ]]; then
+if [[ ! -d "${HADOOP_TMP_DIR}/dfs/name/current" ]]; then
   echo "Formatting NameNode..."
   gosu hdfs bash -lc "${HADOOP_HOME}/bin/hdfs namenode -format -force -nonInteractive"
 fi

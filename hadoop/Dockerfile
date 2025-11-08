@@ -2,10 +2,8 @@ FROM big-data.lab/base:latest
 
 ENV HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
 ENV HADOOP_LOG_DIR=/var/log/hadoop
-ENV HADOOP_VAR_DIR=/var/hadoop
-ENV HADOOP_PID_DIR=${HADOOP_VAR_DIR}/pid
-ENV HADOOP_TMP_DIR=${HADOOP_VAR_DIR}/tmp
-ENV PATH=${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin:$PATH
+ENV HADOOP_PID_DIR=/var/run/hadoop
+ENV HADOOP_TMP_DIR=/var/hadoop/tmp
 
 RUN set -eux && \
     mkdir -p ${HADOOP_PID_DIR} ${HADOOP_TMP_DIR} /volumes/data /volumes/logs && \
