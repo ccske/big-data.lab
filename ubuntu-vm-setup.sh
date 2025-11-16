@@ -42,7 +42,7 @@ sudo install -m 0755 -d /etc/apt/keyrings
 APT_DOCKER_ASC=/etc/apt/keyrings/docker.asc
 APT_DOCKER_LIST=/etc/apt/sources.list.d/docker.list
 APT_DOCKER_URL=https://download.docker.com/linux/ubuntu
-sudo curl -fsSL ${APT_DOCKER_URL}/gpg -o ${APT_DOCKER_ASC} && sudo chmod a+r ${APT_DOCKER_ASC}
+sudo curl -fkSL ${APT_DOCKER_URL}/gpg -o ${APT_DOCKER_ASC} && sudo chmod a+r ${APT_DOCKER_ASC}
 if [[ ! -f "${APT_DOCKER_LIST}" ]]; then
     echo "deb [arch=$ARCH signed-by=${APT_DOCKER_ASC}] ${APT_DOCKER_URL} ${UBUNTU_CODENAME:-$VERSION_CODENAME} stable" | \
         sudo tee ${APT_DOCKER_LIST} > /dev/null
@@ -52,7 +52,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli c
 sudo usermod -aG docker ${USER_NAME}
 
 # Build and launch Hadoop ecosystem containers via Docker Compose
-sg docker -c "docker build -t big-data.lab/base:latest ${PROJECT_DIR}/base"
+sg docker -c "docker build -t big-data.lab/base ${PROJECT_DIR}/base"
 printf "USER_NAME=%s\nUSER_ID=%s\nGROUP_NAME=%s\nGROUP_ID=%s\n" \
     "${USER_NAME}" "${USER_ID}" "${GROUP_NAME}" "${GROUP_ID}" | \
     tee "${PROJECT_DIR}/.env" > /dev/null
@@ -76,7 +76,7 @@ fi
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-client
 MYSQL_CLIENT_CNF=".my.cnf"
 if [[ ! -f "$HOME/${MYSQL_CLIENT_CNF}" ]]; then
-    cp -f ${PROJECT_DIR}/mysql/client/${MYSQL_CLIENT_CNF} $HOME/
+    cp -f "${PROJECT_DIR}/mysql/client/${MYSQL_CLIENT_CNF}" "$HOME/"
 fi
 HADOOP_HOME="/opt/hadoop"
 if [[ ! -d ${HADOOP_HOME} ]]; then
@@ -90,6 +90,16 @@ fi
 HIVE_HOME="/opt/hive"
 if [[ ! -d ${HIVE_HOME} ]]; then
     sudo docker cp -aL hive-server2:${HIVE_HOME} $(realpath "$(dirname "${HIVE_HOME}")")
+    HADOOP_FOR_HIVE=${HIVE_HOME}/hadoop
+    sudo mkdir -p "${HADOOP_FOR_HIVE}"
+    find "${HADOOP_HOME}" -type d -print0 | while IFS= read -r -d '' dir; do
+        sudo mkdir -p "${HADOOP_FOR_HIVE}/${dir#${HADOOP_HOME}}"
+    done
+    find "${HADOOP_HOME}" -type f -print0 | while IFS= read -r -d '' file; do
+        sudo ln -s "$file" "${HADOOP_FOR_HIVE}/${file#${HADOOP_HOME}}"
+    done
+    sudo rm -f "${HADOOP_FOR_HIVE}/etc/hadoop/hadoop-env.sh" "${HADOOP_FOR_HIVE}/share/hadoop/common/lib/slf4j-reload4j-*.jar"
+    echo "HADOOP_HOME=${HADOOP_FOR_HIVE}" | sudo tee -a "${HIVE_HOME}/conf/hive-env.sh" > /dev/null
 fi
 BIG_DATA_LAB_BIN="${HADOOP_HOME}/bin:${PIG_HOME}/bin:${HIVE_HOME}/bin"
 if [[ ":$PATH:" != *":${BIG_DATA_LAB_BIN}:"* ]]; then

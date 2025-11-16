@@ -17,25 +17,26 @@ RUN set -eux && \
       arm64)  HADOOP_TGZ="hadoop-${HADOOP_VERSION}-aarch64.tar.gz" ;; \
       *)      echo "Unsupported arch: ${TARGETARCH}"; exit 1 ;; \
     esac && \
-    curl -fSL "https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/${HADOOP_TGZ}" | tar -xz -C /opt && \
+    curl -fkSL "https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/${HADOOP_TGZ}" | tar -xz -C /opt && \
     ln -s hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
 
 ENV PIG_VERSION=0.18.0
 ENV PIG_HOME=/opt/pig
 RUN set -eux && \
-    curl -fSL "https://downloads.apache.org/pig/pig-${PIG_VERSION}/pig-${PIG_VERSION}.tar.gz" | tar -xz -C /opt && \
+    curl -fkSL "https://downloads.apache.org/pig/pig-${PIG_VERSION}/pig-${PIG_VERSION}.tar.gz" | tar -xz -C /opt && \
     ln -s pig-${PIG_VERSION} ${PIG_HOME}
 
 ENV HIVE_VERSION=4.0.1
 ENV HIVE_HOME=/opt/hive
 RUN set -eux && \
-    curl -fSL "https://downloads.apache.org/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz" | tar -xz -C /opt && \
+    curl -fkSL "https://downloads.apache.org/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz" | tar -xz -C /opt && \
     ln -s apache-hive-${HIVE_VERSION}-bin ${HIVE_HOME}
 
 ENV MYSQL_CONNECTOR_J_VERSION=8.4.0
 RUN set -eux && \
-    MYSQL_CONNECTOR_J_JAR="mysql-connector-j-${MYSQL_CONNECTOR_J_VERSION}.jar" && \
-    curl -fSL "https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/${MYSQL_CONNECTOR_J_VERSION}/${MYSQL_CONNECTOR_J_JAR}" -o "${HIVE_HOME}/lib/${MYSQL_CONNECTOR_J_JAR}"
+    curl -fkSL "https://downloads.mysql.com/archives/get/p/3/file/mysql-connector-j-${MYSQL_CONNECTOR_J_VERSION}.tar.gz" | tar -xz -C /tmp && \
+    cp -f /tmp/mysql-connector-j-${MYSQL_CONNECTOR_J_VERSION}/mysql-connector-j-${MYSQL_CONNECTOR_J_VERSION}.jar ${HIVE_HOME}/lib/ && \
+    rm -rf /tmp/mysql-connector-j-${MYSQL_CONNECTOR_J_VERSION}
 
 RUN set -eux && \
     groupadd -r supergroup && \
