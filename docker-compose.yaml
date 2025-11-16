@@ -3,13 +3,14 @@ name: big-data.lab
 services:
   hadoop-master:
     build:
-      context: ./hadoop
+      context: .
+      dockerfile: hadoop/Dockerfile
     image: big-data.lab/hadoop
     container_name: hadoop-master
     restart: unless-stopped
     hostname: hadoop-master
     env_file:
-      - path: ./.env
+      - path: .env
         required: false
     environment:
       MASTER: "hadoop-master"
@@ -34,7 +35,7 @@ services:
     restart: unless-stopped
     hostname: hadoop-worker1
     env_file:
-      - path: ./.env
+      - path: .env
         required: false
     environment:
       MASTER: "hadoop-master"
@@ -58,7 +59,7 @@ services:
     restart: unless-stopped
     hostname: hadoop-worker2
     env_file:
-      - path: ./.env
+      - path: .env
         required: false
     environment:
       MASTER: "hadoop-master"
@@ -82,7 +83,7 @@ services:
     restart: unless-stopped
     hostname: hadoop-worker3
     env_file:
-      - path: ./.env
+      - path: .env
         required: false
     environment:
       MASTER: "hadoop-master"
@@ -100,7 +101,8 @@ services:
 
   nginx:
     build:
-      context: ./nginx
+      context: .
+      dockerfile: nginx/Dockerfile
     image: big-data.lab/nginx
     container_name: nginx
     depends_on: 
@@ -117,7 +119,8 @@ services:
 
   mysql:
     build:
-      context: ./mysql
+      context: .
+      dockerfile: mysql/Dockerfile
     image: big-data.lab/mysql
     container_name: mysql
     restart: unless-stopped

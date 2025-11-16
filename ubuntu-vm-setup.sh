@@ -90,16 +90,9 @@ fi
 HIVE_HOME="/opt/hive"
 if [[ ! -d ${HIVE_HOME} ]]; then
     sudo docker cp -aL hive-server2:${HIVE_HOME} $(realpath "$(dirname "${HIVE_HOME}")")
-    HADOOP_FOR_HIVE=${HIVE_HOME}/hadoop
-    sudo mkdir -p "${HADOOP_FOR_HIVE}"
-    find "${HADOOP_HOME}" -type d -print0 | while IFS= read -r -d '' dir; do
-        sudo mkdir -p "${HADOOP_FOR_HIVE}/${dir#${HADOOP_HOME}}"
-    done
-    find "${HADOOP_HOME}" -type f -print0 | while IFS= read -r -d '' file; do
-        sudo ln -s "$file" "${HADOOP_FOR_HIVE}/${file#${HADOOP_HOME}}"
-    done
-    sudo rm -f "${HADOOP_FOR_HIVE}/etc/hadoop/hadoop-env.sh" "${HADOOP_FOR_HIVE}/share/hadoop/common/lib/slf4j-reload4j-*.jar"
-    echo "HADOOP_HOME=${HADOOP_FOR_HIVE}" | sudo tee -a "${HIVE_HOME}/conf/hive-env.sh" > /dev/null
+    sudo cp -as "${HADOOP_HOME}" "${HIVE_HOME}/hadoop"
+    sudo find "${HIVE_HOME}/hadoop" \( -name "hadoop-env.sh" -o -name "slf4j-reload4j-*.jar" \) -delete
+    echo "HADOOP_HOME=${HIVE_HOME}/hadoop" | sudo tee -a "${HIVE_HOME}/conf/hive-env.sh" > /dev/null
 fi
 BIG_DATA_LAB_BIN="${HADOOP_HOME}/bin:${PIG_HOME}/bin:${HIVE_HOME}/bin"
 if [[ ":$PATH:" != *":${BIG_DATA_LAB_BIN}:"* ]]; then

@@ -12,8 +12,8 @@ RUN set -eux && \
     ln -s /volumes/data ${HADOOP_TMP_DIR}/dfs && \
     ln -s /volumes/logs ${HADOOP_LOG_DIR}
 
-COPY etc/hadoop/* ${HADOOP_HOME}/etc/hadoop/
-COPY entrypoint/* /usr/local/bin/
+COPY hadoop/etc/hadoop/* ${HADOOP_HOME}/etc/hadoop/
+COPY hadoop/entrypoint/* /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint-*.sh
 
 ENTRYPOINT ["/usr/bin/tini", "--"]

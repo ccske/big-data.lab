@@ -1,7 +1,5 @@
 FROM big-data.lab/base:latest
 
-ENV JAVA_TOOL_OPTIONS="--add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED"
-
 ENV HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
 ENV HIVE_CONF_DIR=${HIVE_HOME}/conf
 ENV HIVE_LOG_DIR=/var/log/hive
@@ -18,6 +16,7 @@ COPY hive/conf/* ${HIVE_CONF_DIR}/
 COPY hive/entrypoint/* /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint-*.sh
 
+ENV JAVA_TOOL_OPTIONS="--add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED"
 RUN rm -f ${HADOOP_HOME}/share/hadoop/common/lib/slf4j-reload4j-*.jar
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
