@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # Make sure the system is supported
-if [[ -r /etc/os-release ]]; then
+if [[ -r "/etc/os-release" ]]; then
     source /etc/os-release
 fi
 if [[ "$ID" != "ubuntu" ]]; then
@@ -52,7 +52,6 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli c
 sudo usermod -aG docker ${USER_NAME}
 
 # Build and launch Hadoop ecosystem containers via Docker Compose
-sg docker -c "docker build -t big-data.lab/base ${PROJECT_DIR}/base"
 printf "USER_NAME=%s\nUSER_ID=%s\nGROUP_NAME=%s\nGROUP_ID=%s\n" \
     "${USER_NAME}" "${USER_ID}" "${GROUP_NAME}" "${GROUP_ID}" | \
     tee "${PROJECT_DIR}/.env" > /dev/null
@@ -73,27 +72,27 @@ if ! grep -qxF "${JAVA_HOME_ENTRY}" "$HOME/.bashrc"; then
 fi
 
 # Set up client environment
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-client
-MYSQL_CLIENT_CNF=".my.cnf"
-if [[ ! -f "$HOME/${MYSQL_CLIENT_CNF}" ]]; then
-    cp -f "${PROJECT_DIR}/mysql/client/${MYSQL_CLIENT_CNF}" "$HOME/"
-fi
 HADOOP_HOME="/opt/hadoop"
-if [[ ! -d ${HADOOP_HOME} ]]; then
+if [[ ! -d "${HADOOP_HOME}" ]]; then
     sudo docker cp -aL hadoop-master:${HADOOP_HOME} $(realpath "$(dirname "${HADOOP_HOME}")")
 fi
+
+PIG_VERSION="0.18.0"
 PIG_HOME="/opt/pig"
-if [[ ! -d ${PIG_HOME} ]]; then
-    sudo docker cp -aL hadoop-master:${PIG_HOME} $(realpath "$(dirname "${PIG_HOME}")")
+if [[ ! -d "${PIG_HOME}" && ! ( -L "${PIG_HOME}" && -d "$(readlink -f -- "${PIG_HOME}")" ) ]]; then
+    sudo curl -fkSL "https://downloads.apache.org/pig/pig-${PIG_VERSION}/pig-${PIG_VERSION}.tar.gz" | sudo tar -xz -C /opt
+    sudo ln -s pig-${PIG_VERSION} ${PIG_HOME}
     sudo sed -i 's/^pig\.ats\.enabled=true/pig.ats.enabled=false/' "${PIG_HOME}/conf/pig.properties"
 fi
+
 HIVE_HOME="/opt/hive"
-if [[ ! -d ${HIVE_HOME} ]]; then
+if [[ ! -d "${HIVE_HOME}" ]]; then
     sudo docker cp -aL hive-server2:${HIVE_HOME} $(realpath "$(dirname "${HIVE_HOME}")")
     sudo cp -as "${HADOOP_HOME}" "${HIVE_HOME}/hadoop"
     sudo find "${HIVE_HOME}/hadoop" \( -name "hadoop-env.sh" -o -name "slf4j-reload4j-*.jar" \) -delete
     echo "HADOOP_HOME=${HIVE_HOME}/hadoop" | sudo tee -a "${HIVE_HOME}/conf/hive-env.sh" > /dev/null
 fi
+
 BIG_DATA_LAB_BIN="${HADOOP_HOME}/bin:${PIG_HOME}/bin:${HIVE_HOME}/bin"
 if [[ ":$PATH:" != *":${BIG_DATA_LAB_BIN}:"* ]]; then
     echo | tee -a "$HOME/.bashrc" > /dev/null
@@ -102,6 +101,12 @@ if [[ ":$PATH:" != *":${BIG_DATA_LAB_BIN}:"* ]]; then
         "    export PATH=\"${BIG_DATA_LAB_BIN}:\$PATH\"" \
         "fi" | \
         tee -a "$HOME/.bashrc" > /dev/null
+fi
+
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-client
+MYSQL_CLIENT_CNF=".my.cnf"
+if [[ ! -f "$HOME/${MYSQL_CLIENT_CNF}" ]]; then
+    cp -f "${PROJECT_DIR}/mysql/client/${MYSQL_CLIENT_CNF}" "$HOME/"
 fi
 
 # Install commonly used tools (optional)

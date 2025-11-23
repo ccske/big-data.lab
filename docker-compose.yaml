@@ -1,19 +1,27 @@
 name: big-data.lab
 
 services:
+  base:
+    build:
+      context: .
+      dockerfile: base/Dockerfile
+    image: big-data.lab/base
+    restart: no
+    command: ["true"]
+
   hadoop-master:
     build:
       context: .
       dockerfile: hadoop/Dockerfile
+      additional_contexts:
+        big-data.lab/base: "service:base"
     image: big-data.lab/hadoop
     container_name: hadoop-master
     restart: unless-stopped
     hostname: hadoop-master
     env_file:
-      - path: .env
+      - path: ./.env
         required: false
-    environment:
-      MASTER: "hadoop-master"
     command: ["/usr/local/bin/entrypoint-master.sh"]
     ports:
       - 9870:9870    # HDFS NameNode UI
@@ -35,10 +43,10 @@ services:
     restart: unless-stopped
     hostname: hadoop-worker1
     env_file:
-      - path: .env
+      - path: ./.env
         required: false
     environment:
-      MASTER: "hadoop-master"
+      HADOOP_MASTER: "hadoop-master"
       AM_RPC: "43210-43219"
     command: ["/usr/local/bin/entrypoint-worker.sh"]
     expose:
@@ -59,10 +67,10 @@ services:
     restart: unless-stopped
     hostname: hadoop-worker2
     env_file:
-      - path: .env
+      - path: ./.env
         required: false
     environment:
-      MASTER: "hadoop-master"
+      HADOOP_MASTER: "hadoop-master"
       AM_RPC: "43220-43229"
     command: ["/usr/local/bin/entrypoint-worker.sh"]
     expose:
@@ -83,10 +91,10 @@ services:
     restart: unless-stopped
     hostname: hadoop-worker3
     env_file:
-      - path: .env
+      - path: ./.env
         required: false
     environment:
-      MASTER: "hadoop-master"
+      HADOOP_MASTER: "hadoop-master"
       AM_RPC: "43230-43239"
     command: ["/usr/local/bin/entrypoint-worker.sh"]
     expose:
@@ -137,15 +145,18 @@ services:
     build:
       context: .
       dockerfile: hive/Dockerfile
+      additional_contexts:
+        big-data.lab/hadoop: "service:hadoop-master"
     image: big-data.lab/hive
     container_name: hive-metastore
     depends_on:
-      - mysql
       - hadoop-master
+      - mysql
     restart: unless-stopped
     hostname: hive-metastore
     environment:
-      MASTER: "hadoop-master"
+      HADOOP_MASTER: "hadoop-master"
+      MYSQL: "mysql"
     command: ["/usr/local/bin/entrypoint-metastore.sh"]
     ports:
       - 9083:9083  # Metastore Thrift
@@ -155,12 +166,13 @@ services:
     image: big-data.lab/hive
     container_name: hive-server2
     depends_on:
-      - hive-metastore
       - hadoop-master
+      - hive-metastore
     restart: unless-stopped
     hostname: hive-server2
     environment:
-      MASTER: "hadoop-master"
+      HADOOP_MASTER: "hadoop-master"
+      HIVE_METASTORE: "hive-metastore"
     command: ["/usr/local/bin/entrypoint-server2.sh"]
     ports:
       - 10000:10000  # HS2 Thrift
