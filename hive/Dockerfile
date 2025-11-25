@@ -8,7 +8,7 @@ ENV HIVESERVER2_PID_DIR=${HIVE_PID_DIR}
 
 ARG HIVE_VERSION=4.0.1
 RUN set -eux && \
-    curl -fkSL "https://downloads.apache.org/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz" | tar -xz -C /opt && \
+    curl -fkSL "https://archive.apache.org/dist/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz" | tar -xz -C /opt && \
     ln -s apache-hive-${HIVE_VERSION}-bin ${HIVE_HOME}
 
 ARG MYSQL_CONNECTOR_J_VERSION=8.4.0

@@ -14,7 +14,7 @@ RUN set -eux && \
       arm64)  HADOOP_TGZ="hadoop-${HADOOP_VERSION}-aarch64.tar.gz" ;; \
       *)      echo "Unsupported arch: ${TARGETARCH}"; exit 1 ;; \
     esac && \
-    curl -fkSL "https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/${HADOOP_TGZ}" | tar -xz -C /opt && \
+    curl -fkSL "https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/${HADOOP_TGZ}" | tar -xz -C /opt && \
     ln -s hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
 
 RUN set -eux && \

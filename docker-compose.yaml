@@ -179,6 +179,28 @@ services:
       - 10002:10002  # HS2 Web UI
     networks: [net]
 
+  nifi:
+    build:
+      context: .
+      dockerfile: nifi/Dockerfile
+      additional_contexts:
+        big-data.lab/hadoop: "service:hadoop-master"
+    image: big-data.lab/nifi
+    container_name: nifi
+    depends_on:
+      - hadoop-master
+      - mysql
+      - hive-metastore
+      - hive-server2
+    restart: unless-stopped
+    hostname: nifi
+    ports:
+      - "8443:8443"   # NiFi Web UI (HTTPS)
+    volumes:
+      - nifi_conf:/opt/nifi/nifi-current/conf
+      - nifi_state:/opt/nifi/nifi-current/state
+    networks: [net]
+
 volumes:
   hadoop_master_data:
   hadoop_master_logs:
@@ -189,6 +211,8 @@ volumes:
   hadoop_worker3_data:
   hadoop_worker3_logs:
   mysql_data:
+  nifi_conf:
+  nifi_state:
 
 networks:
   net:
