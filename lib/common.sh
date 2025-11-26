@@ -38,30 +38,3 @@ function wait_until_service_up() {
     echo "$host:$port is up."
     return 0
 }
-
-function wait_until_file_created() {
-    local file=$1
-    local timeout=60
-    local sleep_interval=1
-    local start_time=$(date +%s)
-    local current_time=${start_time}
-
-    (( timeout_time = start_time + timeout ))
-    while (( current_time <= timeout_time )); do
-        if [ -e "$file" ]; then
-            break
-        fi
-        sleep ${sleep_interval}
-        current_time=$(date +%s)
-        (( elapsed = current_time - start_time ))
-        echo "[$elapsed/$timeout] waiting for $file..."
-    done
-
-    if (( current_time > timeout_time )); then
-        echo "$file is still unavailable!"
-        return 1
-    fi
-
-    echo "$file is available."
-    return 0
-}

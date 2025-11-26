@@ -7,11 +7,6 @@ source "${SCRIPT_DIR}/common.sh"
 
 JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(which java)")")")"
 
-if [[ -n "${USER_NAME-}" && -n "${USER_ID-}" && -n "${GROUP_NAME-}" && -n "${GROUP_ID-}" ]]; then
-    getent group ${GROUP_NAME} > /dev/null 2>&1 || groupadd -g ${GROUP_ID} ${GROUP_NAME}
-    getent passwd ${USER_NAME} > /dev/null 2>&1 || useradd -u ${USER_ID} -g ${GROUP_NAME} -G supergroup -M ${USER_NAME}
-fi
-
 sed -i "/<\/configuration>/i \  <property>\n    <name>yarn.app.mapreduce.am.job.client.port-range</name>\n    <value>${AM_RPC}</value>\n  </property>" "$HADOOP_CONF_DIR/mapred-site.xml"
 
 wait_until_service_up "${HADOOP_MASTER}" "9870" || exit 1

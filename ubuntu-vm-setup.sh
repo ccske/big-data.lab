@@ -56,7 +56,7 @@ printf "USER_NAME=%s\nUSER_ID=%s\nGROUP_NAME=%s\nGROUP_ID=%s\n" \
     "${USER_NAME}" "${USER_ID}" "${GROUP_NAME}" "${GROUP_ID}" | \
     tee "${PROJECT_DIR}/.env" > /dev/null
 sg docker -c "docker compose --project-directory ${PROJECT_DIR} up --build -d"
-HOSTS_ENTRY="127.0.0.1 hadoop-master hadoop-worker1 hadoop-worker2 hadoop-worker3 hive-metastore hive-server2"
+HOSTS_ENTRY="127.0.0.1 hadoop-master hadoop-worker1 hadoop-worker2 hadoop-worker3"
 if ! grep -qxF "${HOSTS_ENTRY}" "/etc/hosts"; then
     echo | sudo tee -a "/etc/hosts" > /dev/null
     echo "${HOSTS_ENTRY}" | sudo tee -a "/etc/hosts" > /dev/null
@@ -85,15 +85,7 @@ if [[ ! -d "${PIG_HOME}" && ! ( -L "${PIG_HOME}" && -d "$(readlink -f -- "${PIG_
     sudo sed -i 's/^pig\.ats\.enabled=true/pig.ats.enabled=false/' "${PIG_HOME}/conf/pig.properties"
 fi
 
-HIVE_HOME="/opt/hive"
-if [[ ! -d "${HIVE_HOME}" ]]; then
-    sudo docker cp -aL hive-server2:${HIVE_HOME} $(realpath "$(dirname "${HIVE_HOME}")")
-    sudo cp -as "${HADOOP_HOME}" "${HIVE_HOME}/hadoop"
-    sudo find "${HIVE_HOME}/hadoop" \( -name "hadoop-env.sh" -o -name "slf4j-reload4j-*.jar" \) -delete
-    echo "HADOOP_HOME=${HIVE_HOME}/hadoop" | sudo tee -a "${HIVE_HOME}/conf/hive-env.sh" > /dev/null
-fi
-
-BIG_DATA_LAB_BIN="${HADOOP_HOME}/bin:${PIG_HOME}/bin:${HIVE_HOME}/bin"
+BIG_DATA_LAB_BIN="${HADOOP_HOME}/bin:${PIG_HOME}/bin"
 if [[ ":$PATH:" != *":${BIG_DATA_LAB_BIN}:"* ]]; then
     echo | tee -a "$HOME/.bashrc" > /dev/null
     printf "%s\n%s\n%s\n" \
@@ -113,6 +105,6 @@ fi
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y net-tools ssh tmux vim
 
 # Done
-echo "-------------------------------------------------------------------------------------"
-echo ">>> Successfully set up big-data.lab! You may reboot the system to apply all changes."
+echo
+echo ">>> Set up big-data.lab successfully! You may reboot the system to apply all changes."
 echo

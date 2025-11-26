@@ -1,20 +1,12 @@
 name: big-data.lab
 
 services:
-  base:
-    build:
-      context: .
-      dockerfile: base/Dockerfile
-    image: big-data.lab/base
-    restart: no
-    command: ["true"]
-
   hadoop-master:
     build:
       context: .
       dockerfile: hadoop/Dockerfile
-      additional_contexts:
-        big-data.lab/base: "service:base"
+      args:
+        HADOOP_MASTER: "hadoop-master"
     image: big-data.lab/hadoop
     container_name: hadoop-master
     restart: unless-stopped
@@ -22,7 +14,7 @@ services:
     env_file:
       - path: ./.env
         required: false
-    command: ["/usr/local/bin/entrypoint-master.sh"]
+    command: ["/entrypoint/entrypoint-master.sh"]
     ports:
       - 9870:9870    # HDFS NameNode UI
       - 8020:8020    # HDFS NameNode RPC
@@ -42,13 +34,9 @@ services:
       - hadoop-master
     restart: unless-stopped
     hostname: hadoop-worker1
-    env_file:
-      - path: ./.env
-        required: false
     environment:
-      HADOOP_MASTER: "hadoop-master"
       AM_RPC: "43210-43219"
-    command: ["/usr/local/bin/entrypoint-worker.sh"]
+    command: ["/entrypoint/entrypoint-worker.sh"]
     expose:
       - 9864  # HDFS DataNode UI
       - 8042  # YARN NodeManager UI
@@ -66,13 +54,9 @@ services:
       - hadoop-master
     restart: unless-stopped
     hostname: hadoop-worker2
-    env_file:
-      - path: ./.env
-        required: false
     environment:
-      HADOOP_MASTER: "hadoop-master"
       AM_RPC: "43220-43229"
-    command: ["/usr/local/bin/entrypoint-worker.sh"]
+    command: ["/entrypoint/entrypoint-worker.sh"]
     expose:
       - 9864  # HDFS DataNode UI
       - 8042  # YARN NodeManager UI
@@ -90,13 +74,9 @@ services:
       - hadoop-master
     restart: unless-stopped
     hostname: hadoop-worker3
-    env_file:
-      - path: ./.env
-        required: false
     environment:
-      HADOOP_MASTER: "hadoop-master"
       AM_RPC: "43230-43239"
-    command: ["/usr/local/bin/entrypoint-worker.sh"]
+    command: ["/entrypoint/entrypoint-worker.sh"]
     expose:
       - 9864  # HDFS DataNode UI
       - 8042  # YARN NodeManager UI
@@ -141,66 +121,6 @@ services:
       - mysql_data:/var/lib/mysql
     networks: [net]
 
-  hive-metastore:
-    build:
-      context: .
-      dockerfile: hive/Dockerfile
-      additional_contexts:
-        big-data.lab/hadoop: "service:hadoop-master"
-    image: big-data.lab/hive
-    container_name: hive-metastore
-    depends_on:
-      - hadoop-master
-      - mysql
-    restart: unless-stopped
-    hostname: hive-metastore
-    environment:
-      HADOOP_MASTER: "hadoop-master"
-      MYSQL: "mysql"
-    command: ["/usr/local/bin/entrypoint-metastore.sh"]
-    ports:
-      - 9083:9083  # Metastore Thrift
-    networks: [net]
-
-  hive-server2:
-    image: big-data.lab/hive
-    container_name: hive-server2
-    depends_on:
-      - hadoop-master
-      - hive-metastore
-    restart: unless-stopped
-    hostname: hive-server2
-    environment:
-      HADOOP_MASTER: "hadoop-master"
-      HIVE_METASTORE: "hive-metastore"
-    command: ["/usr/local/bin/entrypoint-server2.sh"]
-    ports:
-      - 10000:10000  # HS2 Thrift
-      - 10002:10002  # HS2 Web UI
-    networks: [net]
-
-  nifi:
-    build:
-      context: .
-      dockerfile: nifi/Dockerfile
-      additional_contexts:
-        big-data.lab/hadoop: "service:hadoop-master"
-    image: big-data.lab/nifi
-    container_name: nifi
-    depends_on:
-      - hadoop-master
-      - mysql
-      - hive-metastore
-      - hive-server2
-    restart: unless-stopped
-    hostname: nifi
-    ports:
-      - "8443:8443"   # NiFi Web UI (HTTPS)
-    volumes:
-      - nifi_conf:/opt/nifi/nifi-current/conf
-      - nifi_state:/opt/nifi/nifi-current/state
-    networks: [net]
-
 volumes:
   hadoop_master_data:
   hadoop_master_logs:
@@ -211,8 +131,6 @@ volumes:
   hadoop_worker3_data:
   hadoop_worker3_logs:
   mysql_data:
-  nifi_conf:
-  nifi_state:
 
 networks:
   net:
