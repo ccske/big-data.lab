@@ -4,6 +4,3 @@ COPY nginx/etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
 RUN set -eux && \
     rm -f /etc/nginx/conf.d/default.conf
-
-EXPOSE 9864
-EXPOSE 8042

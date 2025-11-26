@@ -7,6 +7,7 @@ services:
       dockerfile: hadoop/Dockerfile
       args:
         HADOOP_MASTER: "hadoop-master"
+        HADOOP_VERSION: ${HADOOP_VERSION}
     image: big-data.lab/hadoop
     container_name: hadoop-master
     restart: unless-stopped
@@ -87,6 +88,30 @@ services:
       - hadoop_worker3_logs:/volumes/logs
     networks: [net]
 
+  spark-history:
+    build:
+      context: .
+      additional_contexts:
+        big-data.lab/hadoop: "service:hadoop-master"
+      dockerfile: spark/Dockerfile
+      args:
+        SPARK_VERSION: ${SPARK_VERSION}
+    image: big-data.lab/spark
+    container_name: spark-history
+    depends_on:
+      - hadoop-master
+      - hadoop-worker1
+      - hadoop-worker2
+      - hadoop-worker3
+    restart: unless-stopped
+    hostname: spark-history
+    command: ["/entrypoint/entrypoint-history.sh"]
+    ports:
+      - 18080:18080  # Spark History Server UI
+    volumes:
+      - spark_history_logs:/volumes/logs
+    networks: [net]
+
   nginx:
     build:
       context: .
@@ -130,6 +155,7 @@ volumes:
   hadoop_worker2_logs:
   hadoop_worker3_data:
   hadoop_worker3_logs:
+  spark_history_logs:
   mysql_data:
 
 networks:

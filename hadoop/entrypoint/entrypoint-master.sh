@@ -18,12 +18,12 @@ if [[ ! -d "${HADOOP_TMP_DIR}/dfs/name/current" ]]; then
 fi
 
 gosu hdfs bash -lc "${HADOOP_HOME}/bin/hdfs --daemon start namenode"
-wait_until_service_up "$HOSTNAME" "9870" || exit 1
+wait_until_service_up "${HOSTNAME}" "9870" || exit 1
 
 gosu yarn bash -lc "${HADOOP_HOME}/bin/yarn --daemon start resourcemanager"
-wait_until_service_up "$HOSTNAME" "8088" || exit 1
+wait_until_service_up "${HOSTNAME}" "8088" || exit 1
 
-gosu hdfs bash -lc "${HADOOP_HOME}/bin/hdfs dfs -ls /tmp > /dev/null 2>&1 || (${HADOOP_HOME}/bin/hdfs dfs -mkdir /tmp && ${HADOOP_HOME}/bin/hdfs dfs -chmod 1777 /tmp)"
+gosu hdfs bash -lc "${HADOOP_HOME}/bin/hdfs dfs -ls /tmp > /dev/null 2>&1 || ( ${HADOOP_HOME}/bin/hdfs dfs -mkdir /tmp && ${HADOOP_HOME}/bin/hdfs dfs -chmod 1777 /tmp )"
 gosu hdfs bash -lc "${HADOOP_HOME}/bin/hdfs dfs -ls /user > /dev/null 2>&1 || ${HADOOP_HOME}/bin/hdfs dfs -mkdir /user"
 
 if [[ -n "${USER_NAME-}" && -n "${USER_ID-}" && -n "${GROUP_NAME-}" && -n "${GROUP_ID-}" ]]; then
@@ -31,12 +31,12 @@ if [[ -n "${USER_NAME-}" && -n "${USER_ID-}" && -n "${GROUP_NAME-}" && -n "${GRO
 fi
 
 gosu mapred bash -lc "${HADOOP_HOME}/bin/mapred --daemon start historyserver"
-wait_until_service_up "$HOSTNAME" "19888" || exit 1
+wait_until_service_up "${HOSTNAME}" "19888" || exit 1
 
-echo "Hadoop master services started: NameNode (hdfs), ResourceManager (yarn), HistoryServer (mapred)."
+echo "Hadoop Master Services started: NameNode (hdfs), ResourceManager (yarn), HistoryServer (mapred)."
 
 trap '
-    echo "Stopping Hadoop master..."; \
+    echo "Stopping Hadoop Master..."; \
     gosu mapred bash -lc "${HADOOP_HOME}/bin/mapred --daemon stop historyserver" || true; \
     gosu yarn bash -lc "${HADOOP_HOME}/bin/yarn --daemon stop resourcemanager" || true; \
     gosu hdfs bash -lc "${HADOOP_HOME}/bin/hdfs --daemon stop namenode" || true; \
