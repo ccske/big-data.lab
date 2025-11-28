@@ -6,7 +6,7 @@ ENV SPARK_CONF_DIR=${SPARK_HOME}/conf
 ENV SPARK_LOG_DIR=/var/log/spark
 
 ARG SPARK_TGZ="spark-${SPARK_VERSION}-bin-hadoop3.tgz"
-COPY package/${SPARK_TGZ} /tmp/
+COPY tarball/${SPARK_TGZ} /tmp/
 RUN set -eux && \
     tar -xzf /tmp/${SPARK_TGZ} -C /opt && \
     chown -R root:root /opt/spark-${SPARK_VERSION}-bin-hadoop3 && \
@@ -21,7 +21,7 @@ RUN set -eux && \
 
 COPY spark/conf/* ${SPARK_CONF_DIR}/
 RUN set -eux && \
-    find "${SPARK_CONF_DIR}" -type f -print0 | xargs -0 sed -i "s/HADOOP_MASTER/${HADOOP_MASTER}/g"
+    find "${SPARK_CONF_DIR}" -type f -print0 | xargs -0 sed -i "s/HADOOP_MASTER_HOSTNAME/${HADOOP_MASTER_HOSTNAME}/g"
 
 COPY spark/entrypoint/entrypoint-*.sh /entrypoint/
 RUN set -eux && \

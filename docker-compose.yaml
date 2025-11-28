@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: hadoop/Dockerfile
       args:
-        HADOOP_MASTER: "hadoop-master"
         HADOOP_VERSION: ${HADOOP_VERSION}
+        HADOOP_MASTER_HOSTNAME: "hadoop-master"
     image: big-data.lab/hadoop
     container_name: hadoop-master
     restart: unless-stopped
@@ -112,6 +112,25 @@ services:
       - spark_history_logs:/volumes/logs
     networks: [net]
 
+  kafka:
+    build:
+      context: .
+      dockerfile: kafka/Dockerfile
+      args:
+        KAFKA_VERSION: ${KAFKA_VERSION}
+        SCALA_VERSION: ${SCALA_VERSION}
+        KAFKA_HOSTNAME: "kafka"
+    image: big-data.lab/kafka
+    container_name: kafka
+    restart: unless-stopped
+    hostname: kafka
+    command: ["/entrypoint/entrypoint.sh"]
+    ports:
+      - 9092:9092  # Kafka Listener
+    volumes:
+      - kafka_data:/var/kafka/data
+    networks: [net]
+
   nginx:
     build:
       context: .
@@ -156,6 +175,7 @@ volumes:
   hadoop_worker3_data:
   hadoop_worker3_logs:
   spark_history_logs:
+  kafka_data:
   mysql_data:
 
 networks:

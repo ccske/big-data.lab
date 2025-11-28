@@ -13,8 +13,8 @@ if [[ -n "${USER_NAME-}" && -n "${USER_ID-}" && -n "${GROUP_NAME-}" && -n "${GRO
 fi
 
 if [[ ! -d "${HADOOP_TMP_DIR}/dfs/name/current" ]]; then
-  echo "Formatting NameNode..."
-  gosu hdfs bash -lc "${HADOOP_HOME}/bin/hdfs namenode -format -force -nonInteractive"
+    echo "Formatting NameNode..."
+    gosu hdfs bash -lc "${HADOOP_HOME}/bin/hdfs namenode -format -force -nonInteractive"
 fi
 
 gosu hdfs bash -lc "${HADOOP_HOME}/bin/hdfs --daemon start namenode"
