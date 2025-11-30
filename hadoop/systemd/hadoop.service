@@ -1,0 +1,14 @@
+[Unit]
+Description=Hadoop All-in-One Service (NameNode, DataNode, ResourceManager, NodeManager, HistoryServer)
+After=network.target
+Requires=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+ExecStart=/opt/hadoop/sbin/start-hadoop.sh
+ExecStop=/opt/hadoop/sbin/stop-hadoop.sh
+
+[Install]
+WantedBy=multi-user.target

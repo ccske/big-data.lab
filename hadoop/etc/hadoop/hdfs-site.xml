@@ -1,0 +1,18 @@
+<configuration>
+  <property>
+    <name>dfs.datanode.directoryscan.throttle.limit.ms.per.sec</name>
+    <value>999</value>
+  </property>
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>file://${hadoop.tmp.dir}/dfs/name,file://${hadoop.tmp.dir}/dfs/name.redundant</value>
+  </property>
+  <property>
+    <name>dfs.replication</name>
+    <value>1</value>
+  </property>
+  <property>
+    <name>dfs.webhdfs.rest-csrf.enabled</name>
+    <value>true</value>
+  </property>
+</configuration>
