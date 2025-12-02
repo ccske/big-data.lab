@@ -51,7 +51,7 @@
 
 # The java implementation to use. By default, this environment
 # variable is REQUIRED on ALL platforms except OS X!
-export JAVA_HOME=>>JAVA_HOME<<
+export JAVA_HOME={{JAVA_HOME}}
 
 # The language environment in which Hadoop runs. Use the English
 # environment to ensure that logs are printed as expected.
@@ -188,7 +188,7 @@ export HADOOP_OS_TYPE=${HADOOP_OS_TYPE:-$(uname -s)}
 # Where (primarily) daemon log files are stored.
 # ${HADOOP_HOME}/logs by default.
 # Java property: hadoop.log.dir
-export HADOOP_LOG_DIR=>>HADOOP_LOG_DIR<<
+export HADOOP_LOG_DIR={{HADOOP_LOG_DIR}}
 
 # A string representing this instance of hadoop. $USER by default.
 # This is used in writing log and pid files, so keep that in mind!
@@ -199,7 +199,7 @@ export HADOOP_LOG_DIR=>>HADOOP_LOG_DIR<<
 # export HADOOP_STOP_TIMEOUT=5
 
 # Where pid files are stored.  /tmp by default.
-export HADOOP_PID_DIR=>>HADOOP_PID_DIR<<
+export HADOOP_PID_DIR={{HADOOP_PID_DIR}}
 
 # Default log4j setting for interactive commands
 # Java property: hadoop.root.logger
@@ -402,6 +402,11 @@ export HADOOP_PID_DIR=>>HADOOP_PID_DIR<<
 # and therefore may override any similar flags set in HADOOP_OPTS
 #
 # export HDFS_STORAGECONTAINERMANAGER_OPTS=""
+
+###
+# Suppress warnings when some older libraries (like Guice 4.0) use reflection
+# to access internal JDK classes.
+export HADOOP_OPTS="$HADOOP_OPTS --add-opens java.base/java.lang=ALL-UNNAMED"
 
 ###
 # Advanced Users Only!

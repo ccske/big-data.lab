@@ -1,5 +1,5 @@
 [Unit]
-Description=Hadoop All-in-One Service (NameNode, DataNode, ResourceManager, NodeManager, HistoryServer)
+Description=Apache Hadoop All-in-One Service (NameNode, DataNode, ResourceManager, NodeManager, HistoryServer)
 After=network.target
 Requires=network.target
 
@@ -7,6 +7,7 @@ Requires=network.target
 Type=oneshot
 RemainAfterExit=yes
 User=root
+Group=root
 ExecStart=/opt/hadoop/sbin/start-hadoop.sh
 ExecStop=/opt/hadoop/sbin/stop-hadoop.sh
 

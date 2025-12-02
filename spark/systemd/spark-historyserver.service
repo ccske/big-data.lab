@@ -1,0 +1,15 @@
+[Unit]
+Description=Apache Spark History Server
+After=network.target hadoop.service
+Requires=hadoop.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=spark
+Group=spark
+ExecStart=/opt/spark/sbin/start-history-server.sh
+ExecStop=/opt/spark/sbin/stop-history-server.sh
+
+[Install]
+WantedBy=multi-user.target
