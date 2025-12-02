@@ -12,6 +12,7 @@ for arg in "$@"; do
     esac
 done
 
+
 #---
 # Make sure the system is supported
 
@@ -54,12 +55,12 @@ sudo bash -c "
     apt-get install -y ca-certificates curl mysql-client mysql-server net-tools openjdk-11-jdk ssh tmux vim
 "
 
-export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(which java)")")")"
-echo "export JAVA_HOME=\"${JAVA_HOME}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
-
 
 #---
 # Set up Apache services
+
+export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(which java)")")")"
+echo "export JAVA_HOME=\"${JAVA_HOME}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 
 SUPER_USER_GROUP=supergroup
 getent group ${SUPER_USER_GROUP} > /dev/null 2>&1 || sudo groupadd -r ${SUPER_USER_GROUP}
@@ -102,8 +103,8 @@ esac
 HADOOP_TARBALL_URL="https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/${HADOOP_TGZ}"
 if [[ ! -d "${HADOOP_HOME}" ]]; then
     [[ -f "/tmp/${HADOOP_TGZ}" ]] || curl -fkSL "${HADOOP_TARBALL_URL}" -o /tmp/${HADOOP_TGZ}
-    sudo tar --no-same-owner -xzf "/tmp/${HADOOP_TGZ}" -C /opt
-    sudo mv -f /opt/hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
+    sudo tar --no-same-owner -xzf "/tmp/${HADOOP_TGZ}" -C /tmp
+    sudo mv -f /tmp/hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
     sudo cp -f ${PROJECT_DIR}/${HADOOP_CONF_DIR#/*/}/* ${HADOOP_CONF_DIR}/
     sudo sed -i \
         -e "s|{{JAVA_HOME}}|${JAVA_HOME}|g" \
@@ -163,6 +164,9 @@ ${HADOOP_HOME}/bin/hdfs dfs -ls /user/$USER > /dev/null 2>&1 || ( \
     sudo -u hdfs ${HADOOP_HOME}/bin/hdfs dfs -chown $USER:${SUPER_USER_GROUP} /user/$USER
 )
 
+echo | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export HADOOP_HOME=\"${HADOOP_HOME}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export HADOOP_CONF_DIR=\"${HADOOP_HOME}/etc/hadoop\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 BIN_DIRS="${HADOOP_HOME}/bin"
 
 
@@ -192,8 +196,8 @@ SPARK_TGZ="spark-${SPARK_VERSION}-bin-hadoop3-scala${SCALA_VERSION}.tgz"
 SPARK_TARBALL_URL="https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_TGZ}"
 if [[ ! -d "${SPARK_HOME}" ]]; then
     [[ -f "/tmp/${SPARK_TGZ}" ]] || curl -fkSL "${SPARK_TARBALL_URL}" -o /tmp/${SPARK_TGZ}
-    sudo tar --no-same-owner -xzf "/tmp/${SPARK_TGZ}" -C /opt
-    sudo mv -f /opt/spark-${SPARK_VERSION}-bin-hadoop3-scala${SCALA_VERSION} ${SPARK_HOME}
+    sudo tar --no-same-owner -xzf "/tmp/${SPARK_TGZ}" -C /tmp
+    sudo mv -f /tmp/spark-${SPARK_VERSION}-bin-hadoop3-scala${SCALA_VERSION} ${SPARK_HOME}
     sudo cp -f ${PROJECT_DIR}/${SPARK_CONF_DIR#/*/}/* ${SPARK_CONF_DIR}/
     sudo sed -i \
         -e "s|{{HADOOP_NATIVE_LID_DIR}}|${HADOOP_NATIVE_LID_DIR}|g" \
@@ -234,21 +238,30 @@ sudo systemctl daemon-reload
 sudo systemctl restart ${SPARK_HISTORYSERVER_SERVICE}
 sudo systemctl enable ${SPARK_HISTORYSERVER_SERVICE}
 
+echo | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export SPARK_HOME=\"${SPARK_HOME}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export SPARK_CONF_DIR=\"${SPARK_HOME}/conf\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 BIN_DIRS="${BIN_DIRS}:${SPARK_HOME}/bin"
 
 
-# TODO: Pig
 PIG_VERSION=0.18.0
 echo "Set up Apache Pig v${PIG_VERSION}..."
+PIG_HOME=/opt/pig
+
 PIG_TGZ="pig-${PIG_VERSION}.tar.gz"
 PIG_TARBALL_URL="https://archive.apache.org/dist/pig/pig-${PIG_VERSION}/${PIG_TGZ}"
-PIG_HOME=/opt/pig
 if [[ ! -d "${PIG_HOME}" ]]; then
     [[ -f "/tmp/${PIG_TGZ}" ]] || curl -fkSL "${PIG_TARBALL_URL}" -o /tmp/${PIG_TGZ}
-    sudo tar --no-same-owner -xzf "/tmp/${PIG_TGZ}" -C /opt
-    sudo ln -s pig-${PIG_VERSION} ${PIG_HOME}
+    sudo tar --no-same-owner -xzf "/tmp/${PIG_TGZ}" -C /tmp
+    sudo mv -f /tmp/pig-${PIG_VERSION} ${PIG_HOME}
+    sudo sed -i "s/^pig\.ats\.enabled=true/pig.ats.enabled=false/" "${PIG_HOME}/conf/pig.properties"
 fi
+
+echo | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export PIG_HOME=\"${PIG_HOME}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export PIG_CONF_DIR=\"${PIG_HOME}/conf\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 BIN_DIRS="${BIN_DIRS}:${PIG_HOME}/bin"
+
 
 # TODO: Kafka
 KAFKA_VERSION=3.9.1
