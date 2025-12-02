@@ -1,8 +1,8 @@
 # big-data.lab
 
-A lightweight Hadoop ecosystem on Docker for educational and research purposes.
+A lightweight Hadoop ecosystem on Ubuntu Linux virtual machine for educational and research purposes.
 
-This project now includes Hadoop, Spark, Pig, Kafka, MySQL, and Nginx components, providing a complete big data lab environment for classroom teaching and student practice.
+This project now includes Hadoop, Spark, Pig, Kafka, and MySQL components, providing a complete big data lab environment for classroom teaching and student practice.
 
 It is designed for **teachers and students** as an educational tool, while **universities and institutions** can obtain commercial licenses for classroom or production use.
 
@@ -14,7 +14,6 @@ It is designed for **teachers and students** as an educational tool, while **uni
 - Pig 0.18.0
 - Kafka 3.9.1 (KRaft mode)
 - MySQL 8
-- Nginx reverse proxy for Hadoop worker UIs
 
 ---
 
@@ -23,51 +22,34 @@ It is designed for **teachers and students** as an educational tool, while **uni
 big-data.lab
 ├── COMMERCIAL_LICENSE.md
 ├── CONTRIBUTING.md
-├── docker-compose.yaml
 ├── hadoop
-│   ├── Dockerfile
-│   ├── entrypoint
-│   │   ├── entrypoint-master.sh
-│   │   └── entrypoint-worker.sh
-│   └── etc
-│       └── hadoop
-│           ├── core-site.xml
-│           ├── hadoop-env.sh
-│           ├── hdfs-site.xml
-│           ├── mapred-site.xml
-│           └── yarn-site.xml
+│   ├── etc
+│   │   └── hadoop
+│   │       ├── core-site.xml
+│   │       ├── hadoop-env.sh
+│   │       ├── hdfs-site.xml
+│   │       ├── mapred-site.xml
+│   │       └── yarn-site.xml
+│   ├── sbin
+│   │   ├── start-hadoop.sh
+│   │   └── stop-hadoop.sh
+│   └── systemd
+│       └── hadoop.service
 ├── kafka
 │   ├── config
 │   │   └── kraft
 │   │       └── server.properties
-│   ├── Dockerfile
-│   └── entrypoint
-│       └── entrypoint.sh
-├── lib
-│   └── common.sh
+│   └── systemd
+│       └── kafka.service
 ├── LICENSE-AGPL
 ├── LICENSE.md
-├── mysql
-│   ├── client
-│   ├── docker-entrypoint-initdb.d
-│   │   └── 00-create-super-user.sql
-│   ├── Dockerfile
-│   └── etc
-│       └── mysql
-│           └── conf.d
-│               └── my.cnf
-├── nginx
-│   ├── Dockerfile
-│   └── etc
-│       └── nginx
-│           └── nginx.conf
 ├── README.md
 ├── spark
 │   ├── conf
-│   │   └── spark-defaults.conf
-│   ├── Dockerfile
-│   └── entrypoint
-│       └── entrypoint-history.sh
+│   │   ├── spark-defaults.conf
+│   │   └── spark-env.sh
+│   └── systemd
+│       └── spark-historyserver.service
 └── ubuntu-vm-setup.sh
 ```
 
@@ -95,24 +77,19 @@ The system relies on `ubuntu-vm-setup.sh` to automate everything. Follow these s
 
 3. **Reboot the VM** after the script completes to apply all changes.
 
-4. After reboot, the Hadoop ecosystem will be running in Docker containers. Access the web UIs from the VM browser:
-   - **HDFS NameNode**: http://hadoop-master:9870
-   - **YARN ResourceManager**: http://hadoop-master:8088
-   - **MapReduce JobHistory**: http://hadoop-master:19888
-   - **Spark History Server**: http://spark-history:18080
+4. After reboot, the Hadoop ecosystem will be running in the background. Access the web UIs from the VM browser:
+   - **HDFS NameNode**: http://localhost:9870
+   - **YARN ResourceManager**: http://localhost:8088
+   - **MapReduce JobHistory**: http://localhost:19888
+   - **Spark History Server**: http://localhost:18080
 
 To access UIs from outside the VM, add this to your system hosts file:
 ```
-<VM_IP> hadoop-master hadoop-worker1 hadoop-worker2 hadoop-worker3 spark-history kafka
+<VM_IP> <VM_HOSTNAME>
 ```
-Replace `<VM_IP>` with the IP address of your VM.
-
-### Upgrade / Resume Setup
-If errors occur or new features are added, you can re-run the script after cleaning old Docker data:
-```bash
-docker compose down -v
-docker image prune -a
-./ubuntu-vm-setup.sh
+Replace `<VM_IP>` and `<VM_HOSTNAME>` with the IP address and the hostname of your VM respectively. For example:
+```
+192.168.64.7 u24arm64
 ```
 
 ---
