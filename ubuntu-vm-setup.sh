@@ -59,7 +59,7 @@ sudo bash -c "
 #---
 # Set up Apache services
 
-export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(which java)")")")"
+JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(which java)")")")"
 echo "export JAVA_HOME=\"${JAVA_HOME}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 
 SUPER_USER_GROUP=supergroup
@@ -114,6 +114,7 @@ if [[ ! -d "${HADOOP_HOME}" ]]; then
     echo "localhost" | sudo tee "${HADOOP_CONF_DIR}/workers"
     sudo cp -f ${PROJECT_DIR}/${HADOOP_SBIN_DIR#/*/}/* ${HADOOP_SBIN_DIR}/
     sudo cp -rf ${PROJECT_DIR}/${HADOOP_SYSTEMD_DIR#/*/} ${HADOOP_SYSTEMD_DIR}
+    sudo sed -i -e "s|{{HADOOP_HOME}}|${HADOOP_HOME}|g" "${HADOOP_SYSTEMD_DIR}/${HADOOP_SERVICE}"
 fi
 
 ITEMS=("DATA" "LOG")
@@ -136,7 +137,6 @@ for ACCOUNT in "${HADOOP_ACCOUNTS[@]}"; do
 done
 
 HADOOP_NATIVE_LID_DIR="${HADOOP_HOME}/lib/native"
-export LD_LIBRARY_PATH="${HADOOP_NATIVE_LID_DIR}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}"
 printf "\n%s\n%s\n%s\n" \
     "if [[ \":\${LD_LIBRARY_PATH}:\" != *\":${HADOOP_NATIVE_LID_DIR}:\"* ]]; then" \
     "    export LD_LIBRARY_PATH=\"${HADOOP_NATIVE_LID_DIR}\${LD_LIBRARY_PATH:+:}\${LD_LIBRARY_PATH:-}\"" \
@@ -166,7 +166,7 @@ ${HADOOP_HOME}/bin/hdfs dfs -ls /user/$USER > /dev/null 2>&1 || ( \
 
 echo | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 echo "export HADOOP_HOME=\"${HADOOP_HOME}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
-echo "export HADOOP_CONF_DIR=\"${HADOOP_HOME}/etc/hadoop\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export HADOOP_CONF_DIR=\"${HADOOP_CONF_DIR}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 BIN_DIRS="${HADOOP_HOME}/bin"
 
 
@@ -206,6 +206,7 @@ if [[ ! -d "${SPARK_HOME}" ]]; then
         -e "s|{{SPARK_PID_DIR}}|${SPARK_PID_DIR}|g" \
         "${SPARK_CONF_DIR}/spark-env.sh"
     sudo cp -rf ${PROJECT_DIR}/${SPARK_SYSTEMD_DIR#/*/} ${SPARK_SYSTEMD_DIR}
+    sudo sed -i -e "s|{{SPARK_HOME}}|${SPARK_HOME}|g" "${SPARK_SYSTEMD_DIR}/${SPARK_HISTORYSERVER_SERVICE}"
 fi
 
 ITEMS=("LOG" "PID")
@@ -218,14 +219,13 @@ for ITEM in "${ITEMS[@]}"; do
     fi
 done
 
-SPARK_ACCOUNT="spark"
-if ! getent passwd "${SPARK_ACCOUNT}" > /dev/null 2>&1; then
-    sudo useradd -G ${SUPER_USER_GROUP} -r -m -d "/home/${SPARK_ACCOUNT}" "${SPARK_ACCOUNT}"
+if ! getent passwd spark > /dev/null 2>&1; then
+    sudo useradd -G ${SUPER_USER_GROUP} -r -m -d /home/spark spark
 fi
 
 ${HADOOP_HOME}/bin/hdfs dfs -ls /shared/spark-logs > /dev/null 2>&1 || ( \
     sudo -u hdfs ${HADOOP_HOME}/bin/hdfs dfs -mkdir -p /shared/spark-logs && \
-    sudo -u hdfs ${HADOOP_HOME}/bin/hdfs dfs -chown ${SPARK_ACCOUNT}:${SUPER_USER_GROUP} /shared/spark-logs && \
+    sudo -u hdfs ${HADOOP_HOME}/bin/hdfs dfs -chown spark:${SUPER_USER_GROUP} /shared/spark-logs && \
     sudo -u hdfs ${HADOOP_HOME}/bin/hdfs dfs -chmod 775 /shared/spark-logs \
 )
 ${HADOOP_HOME}/bin/hdfs dfs -ls /shared/spark-dist > /dev/null 2>&1 || ( \
@@ -240,13 +240,14 @@ sudo systemctl enable ${SPARK_HISTORYSERVER_SERVICE}
 
 echo | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 echo "export SPARK_HOME=\"${SPARK_HOME}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
-echo "export SPARK_CONF_DIR=\"${SPARK_HOME}/conf\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export SPARK_CONF_DIR=\"${SPARK_CONF_DIR}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 BIN_DIRS="${BIN_DIRS}:${SPARK_HOME}/bin"
 
 
 PIG_VERSION=0.18.0
 echo "Set up Apache Pig v${PIG_VERSION}..."
 PIG_HOME=/opt/pig
+PIG_CONF_DIR=${PIG_HOME}/conf
 
 PIG_TGZ="pig-${PIG_VERSION}.tar.gz"
 PIG_TARBALL_URL="https://archive.apache.org/dist/pig/pig-${PIG_VERSION}/${PIG_TGZ}"
@@ -254,27 +255,82 @@ if [[ ! -d "${PIG_HOME}" ]]; then
     [[ -f "/tmp/${PIG_TGZ}" ]] || curl -fkSL "${PIG_TARBALL_URL}" -o /tmp/${PIG_TGZ}
     sudo tar --no-same-owner -xzf "/tmp/${PIG_TGZ}" -C /tmp
     sudo mv -f /tmp/pig-${PIG_VERSION} ${PIG_HOME}
-    sudo sed -i "s/^pig\.ats\.enabled=true/pig.ats.enabled=false/" "${PIG_HOME}/conf/pig.properties"
+    sudo sed -i -e "s|^pig\.ats\.enabled=true|pig.ats.enabled=false|g" "${PIG_CONF_DIR}/pig.properties"
 fi
 
 echo | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 echo "export PIG_HOME=\"${PIG_HOME}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
-echo "export PIG_CONF_DIR=\"${PIG_HOME}/conf\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export PIG_CONF_DIR=\"${PIG_CONF_DIR}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 BIN_DIRS="${BIN_DIRS}:${PIG_HOME}/bin"
 
 
-# TODO: Kafka
 KAFKA_VERSION=3.9.1
 echo "Set up Apache Kafka v${KAFKA_VERSION} (built with Scala v${SCALA_VERSION})..."
+KAFKA_HOME=/opt/kafka
+KAFKA_CONF_DIR=${KAFKA_HOME}/config
+KAFKA_DATA_DIR=/var/lib/kafka
+KAFKA_LOG_DIR=/var/log/kafka
+KAFKA_SYSTEMD_DIR=${KAFKA_HOME}/systemd
+KAFKA_CONF_FILE=${KAFKA_HOME}/config/kraft/server.properties
+
+KAFKA_SERVICE="kafka.service"
+if systemctl list-unit-files --type=service "${KAFKA_SERVICE}" > /dev/null 2>&1; then
+    if sudo systemd-analyze verify "/etc/systemd/system/${KAFKA_SERVICE}" > /dev/null 2>&1; then
+        sudo systemctl stop ${KAFKA_SERVICE}
+        sudo systemctl disable ${KAFKA_SERVICE}
+    fi
+    sudo rm -f /etc/systemd/system/${KAFKA_SERVICE}
+fi
+
+for JPID in $(sudo jps -l | grep -E "kafka.Kafka" | awk '{print $1}'); do
+    sudo kill $JPID
+done
+
 KAFKA_TGZ="kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz"
 KAFKA_TARBALL_URL="https://archive.apache.org/dist/kafka/${KAFKA_VERSION}/${KAFKA_TGZ}"
-KAFKA_HOME=/opt/kafka
 if [[ ! -d "${KAFKA_HOME}" ]]; then
     [[ -f "/tmp/${KAFKA_TGZ}" ]] || curl -fkSL "${KAFKA_TARBALL_URL}" -o /tmp/${KAFKA_TGZ}
-    sudo tar --no-same-owner -xzf "/tmp/${KAFKA_TGZ}" -C /opt
-    sudo ln -s kafka_${SCALA_VERSION}-${KAFKA_VERSION} ${KAFKA_HOME}
+    sudo tar --no-same-owner -xzf "/tmp/${KAFKA_TGZ}" -C /tmp
+    sudo mv -f /tmp/kafka_${SCALA_VERSION}-${KAFKA_VERSION} ${KAFKA_HOME}
+    sudo cp -rf ${PROJECT_DIR}/${KAFKA_CONF_DIR#/*/}/* ${KAFKA_CONF_DIR}/
+    sudo sed -i -e "s|{{KAFKA_DATA_DIR}}|${KAFKA_DATA_DIR}|g" "${KAFKA_CONF_FILE}"
+    sudo cp -rf ${PROJECT_DIR}/${KAFKA_SYSTEMD_DIR#/*/} ${KAFKA_SYSTEMD_DIR}
+    sudo sed -i \
+        -e "s|{{KAFKA_HOME}}|${KAFKA_HOME}|g" \
+        -e "s|{{KAFKA_LOG_DIR}}|${KAFKA_LOG_DIR}|g" \
+        -e "s|{{KAFKA_CONF_FILE}}|${KAFKA_CONF_FILE}|g" \
+        "${KAFKA_SYSTEMD_DIR}/kafka.service"
 fi
+
+ITEMS=("DATA" "LOG")
+for ITEM in "${ITEMS[@]}"; do
+    DIR="KAFKA_${ITEM}_DIR"
+    if [[ ! -d "${!DIR}" ]]; then
+        sudo mkdir -p "${!DIR}"
+        sudo chgrp ${SUPER_USER_GROUP} "${!DIR}"
+        sudo chmod 775 "${!DIR}"
+    fi
+done
+
+if ! getent passwd kafka > /dev/null 2>&1; then
+    sudo useradd -G ${SUPER_USER_GROUP} -r -m -d /home/kafka kafka
+fi
+
+if [[ ! -f "${KAFKA_DATA_DIR}/meta.properties" ]]; then
+    CLUSTER_ID=$($KAFKA_HOME/bin/kafka-storage.sh random-uuid)
+    sudo -u kafka ${KAFKA_HOME}/bin/kafka-storage.sh format --config "${KAFKA_CONF_FILE}" --cluster-id ${CLUSTER_ID} --ignore-formatted
+fi
+
+sudo ln -s ${KAFKA_SYSTEMD_DIR}/${KAFKA_SERVICE} /etc/systemd/system/${KAFKA_SERVICE}
+sudo systemctl daemon-reload
+sudo systemctl restart ${KAFKA_SERVICE}
+sudo systemctl enable ${KAFKA_SERVICE}
+
+echo | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export KAFKA_HOME=\"${KAFKA_HOME}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
+echo "export KAFKA_CONF_DIR=\"${KAFKA_CONF_DIR}\"" | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 BIN_DIRS="${BIN_DIRS}:${KAFKA_HOME}/bin"
+
 
 printf "\n%s\n%s\n%s\n" \
     "if [[ \":\$PATH:\" != *\":${BIN_DIRS}:\"* ]]; then" \

@@ -8,8 +8,8 @@ Type=oneshot
 RemainAfterExit=yes
 User=root
 Group=root
-ExecStart=/opt/hadoop/sbin/start-hadoop.sh
-ExecStop=/opt/hadoop/sbin/stop-hadoop.sh
+ExecStart={{HADOOP_HOME}}/sbin/start-hadoop.sh
+ExecStop={{HADOOP_HOME}}/sbin/stop-hadoop.sh
 
 [Install]
 WantedBy=multi-user.target

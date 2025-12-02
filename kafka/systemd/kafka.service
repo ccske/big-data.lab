@@ -1,0 +1,17 @@
+[Unit]
+Description=Apache Kafka (KRaft Mode)
+After=network.target
+
+[Service]
+Type=simple
+User=kafka
+Group=kafka
+Environment="LOG_DIR={{KAFKA_LOG_DIR}}"
+ExecStart={{KAFKA_HOME}}/bin/kafka-server-start.sh {{KAFKA_CONF_FILE}}
+ExecStop={{KAFKA_HOME}}/bin/kafka-server-stop.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

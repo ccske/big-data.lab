@@ -8,8 +8,8 @@ Type=oneshot
 RemainAfterExit=yes
 User=spark
 Group=spark
-ExecStart=/opt/spark/sbin/start-history-server.sh
-ExecStop=/opt/spark/sbin/stop-history-server.sh
+ExecStart={{SPARK_HOME}}/sbin/start-history-server.sh
+ExecStop={{SPARK_HOME}}/sbin/stop-history-server.sh
 
 [Install]
 WantedBy=multi-user.target
