@@ -4,7 +4,15 @@
     <value>hdfs://localhost:8020</value>
   </property>
   <property>
+    <name>hadoop.ipc.server.fallback-to-simple-auth</name>
+    <value>true</value>
+  </property>
+  <property>
     <name>hadoop.tmp.dir</name>
     <value>/var/lib/hadoop</value>
+  </property>
+  <property>
+    <name>io.compression.codecs</name>
+    <value>org.apache.hadoop.io.compress.GzipCodec</value>
   </property>
 </configuration>

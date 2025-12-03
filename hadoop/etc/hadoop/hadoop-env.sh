@@ -76,14 +76,14 @@ export LANG=en_US.UTF-8
 # prefer any Xmx setting in their respective _OPT variable.
 # There is no default; the JVM will autoscale based upon machine
 # memory size.
-# export HADOOP_HEAPSIZE_MAX=
+export HADOOP_HEAPSIZE_MAX=512
 
 # The minimum amount of heap to use (Java -Xms).  If no unit
 # is provided, it will be converted to MB.  Daemons will
 # prefer any Xms setting in their respective _OPT variable.
 # There is no default; the JVM will autoscale based upon machine
 # memory size.
-# export HADOOP_HEAPSIZE_MIN=
+export HADOOP_HEAPSIZE_MIN=256
 
 # Enable extra debugging of Hadoop's JAAS binding, used to set up
 # Kerberos security.
@@ -292,6 +292,7 @@ export HADOOP_PID_DIR={{HADOOP_PID_DIR}}
 
 # this is the default:
 # export HDFS_NAMENODE_OPTS="-Dhadoop.security.logger=INFO,RFAS"
+export HDFS_NAMENODE_OPTS="${HDFS_NAMENODE_OPTS} -Xmx512m -XX:+UseG1GC"
 
 ###
 # SecondaryNameNode specific parameters
@@ -312,6 +313,7 @@ export HADOOP_PID_DIR={{HADOOP_PID_DIR}}
 #
 # This is the default:
 # export HDFS_DATANODE_OPTS="-Dhadoop.security.logger=ERROR,RFAS"
+export HDFS_DATANODE_OPTS="${HDFS_DATANODE_OPTS} -Xmx384m -XX:+UseG1GC"
 
 # On secure datanodes, user to run the datanode as after dropping privileges.
 # This **MUST** be uncommented to enable secure HDFS if using privileged ports
@@ -325,6 +327,21 @@ export HADOOP_PID_DIR={{HADOOP_PID_DIR}}
 # By default, Hadoop uses jsvc which needs to know to launch a
 # server jvm.
 # export HDFS_DATANODE_SECURE_EXTRA_OPTS="-jvm server"
+
+###
+# ResourceManager specific parameters
+###
+export YARN_RESOURCEMANAGER_OPTS="${YARN_RESOURCEMANAGER_OPTS} -Xmx384m -XX:+UseG1GC"
+
+###
+# NodeManager specific parameters
+###
+export YARN_NODEMANAGER_OPTS="${YARN_NODEMANAGER_OPTS} -Xmx384m -XX:+UseG1GC"
+
+###
+# JobHistoryServer specific parameters
+###
+export MAPRED_HISTORYSERVER_OPTS="${MAPRED_HISTORYSERVER_OPTS} -Xmx256m -XX:+UseG1GC"
 
 ###
 # NFS3 Gateway specific parameters
@@ -406,7 +423,7 @@ export HADOOP_PID_DIR={{HADOOP_PID_DIR}}
 ###
 # Suppress warnings when some older libraries (like Guice 4.0) use reflection
 # to access internal JDK classes.
-export HADOOP_OPTS="$HADOOP_OPTS --add-opens java.base/java.lang=ALL-UNNAMED"
+export HADOOP_OPTS="$HADOOP_OPTS --add-opens java.base/java.lang=ALL-UNNAMED -XX:+UseCompressedOops -XX:+UseG1GC"
 
 ###
 # Advanced Users Only!

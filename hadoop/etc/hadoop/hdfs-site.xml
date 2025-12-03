@@ -1,5 +1,9 @@
 <configuration>
   <property>
+    <name>dfs.blocksize</name>
+    <value>32m</value>
+  </property>
+  <property>
     <name>dfs.datanode.directoryscan.throttle.limit.ms.per.sec</name>
     <value>999</value>
   </property>
