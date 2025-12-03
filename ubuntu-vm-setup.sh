@@ -138,10 +138,10 @@ for ACCOUNT in "${HADOOP_ACCOUNTS[@]}"; do
     fi
 done
 
-HADOOP_NATIVE_LID_DIR="${HADOOP_HOME}/lib/native"
+HADOOP_NATIVE_LIB_DIR="${HADOOP_HOME}/lib/native"
 printf "\n%s\n%s\n%s\n" \
-    "if [[ \":\${LD_LIBRARY_PATH}:\" != *\":${HADOOP_NATIVE_LID_DIR}:\"* ]]; then" \
-    "    export LD_LIBRARY_PATH=\"${HADOOP_NATIVE_LID_DIR}\${LD_LIBRARY_PATH:+:}\${LD_LIBRARY_PATH:-}\"" \
+    "if [[ \":\${LD_LIBRARY_PATH}:\" != *\":${HADOOP_NATIVE_LIB_DIR}:\"* ]]; then" \
+    "    export LD_LIBRARY_PATH=\"${HADOOP_NATIVE_LIB_DIR}\${LD_LIBRARY_PATH:+:}\${LD_LIBRARY_PATH:-}\"" \
     "fi" | \
     tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
 
@@ -202,7 +202,7 @@ if [[ ! -d "${SPARK_HOME}" ]]; then
     sudo mv -f /tmp/spark-${SPARK_VERSION}-bin-hadoop3-scala${SCALA_VERSION} ${SPARK_HOME}
     sudo cp -f "${PROJECT_DIR}/${SPARK_CONF_DIR#/*/}"/* ${SPARK_CONF_DIR}/
     sudo sed -i \
-        -e "s|{{HADOOP_NATIVE_LID_DIR}}|${HADOOP_NATIVE_LID_DIR}|g" \
+        -e "s|{{HADOOP_NATIVE_LIB_DIR}}|${HADOOP_NATIVE_LIB_DIR}|g" \
         -e "s|{{HADOOP_CONF_DIR}}|${HADOOP_CONF_DIR}|g" \
         -e "s|{{SPARK_LOG_DIR}}|${SPARK_LOG_DIR}|g" \
         -e "s|{{SPARK_PID_DIR}}|${SPARK_PID_DIR}|g" \

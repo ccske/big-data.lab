@@ -20,7 +20,7 @@
 # This file is sourced when running various Spark programs.
 # Copy it as spark-env.sh and edit that to configure Spark for your site.
 
-export LD_LIBRARY_PATH={{HADOOP_NATIVE_LID_DIR}}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}
+export LD_LIBRARY_PATH={{HADOOP_NATIVE_LIB_DIR}}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}
 export SPARK_LOCAL_IP="$(hostname -I | awk '{print $1}')"
 
 # Options read when launching programs locally with
@@ -64,6 +64,8 @@ export YARN_CONF_DIR={{HADOOP_CONF_DIR}}
 # - SPARK_DAEMON_JAVA_OPTS, to set config properties for all daemons (e.g. "-Dx=y")
 # - SPARK_DAEMON_CLASSPATH, to set the classpath for all daemons
 # - SPARK_PUBLIC_DNS, to set the public dns name of the master or workers
+export SPARK_DAEMON_MEMORY=512m
+export SPARK_DAEMON_JAVA_OPTS="${SPARK_DAEMON_JAVA_OPTS} -XX:+UseG1GC -XX:+UseStringDeduplication"
 
 # Options for launcher
 # - SPARK_LAUNCHER_OPTS, to set config properties and Java options for the launcher (e.g. "-Dx=y")
