@@ -25,6 +25,7 @@ big-data.lab
 ├── hadoop
 │   ├── etc
 │   │   └── hadoop
+│   │       ├── capacity-scheduler.xml
 │   │       ├── core-site.xml
 │   │       ├── hadoop-env.sh
 │   │       ├── hdfs-site.xml
@@ -43,6 +44,9 @@ big-data.lab
 │       └── kafka.service
 ├── LICENSE-AGPL
 ├── LICENSE.md
+├── pig
+│   └── conf
+│       └── pig.properties
 ├── README.md
 ├── spark
 │   ├── conf
