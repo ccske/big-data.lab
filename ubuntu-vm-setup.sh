@@ -260,7 +260,7 @@ if [[ ! -d "${PIG_HOME}" ]]; then
     [[ -f "/tmp/${PIG_TGZ}" ]] || curl -fkSL "${PIG_TARBALL_URL}" -o /tmp/${PIG_TGZ}
     tar -xzf "/tmp/${PIG_TGZ}" -C /tmp
     sudo mv -f /tmp/pig-${PIG_VERSION} ${PIG_HOME}
-    sudo sed -i -e "s|^pig\.ats\.enabled=true|pig.ats.enabled=false|g" "${PIG_CONF_DIR}/pig.properties"
+    sudo cp -f "${PROJECT_DIR}/${PIG_CONF_DIR#/*/}"/* ${PIG_CONF_DIR}/
     sudo chown -R root:${SUPER_USER_GROUP} ${PIG_HOME}
 fi
 
