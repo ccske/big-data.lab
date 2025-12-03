@@ -103,18 +103,20 @@ esac
 HADOOP_TARBALL_URL="https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/${HADOOP_TGZ}"
 if [[ ! -d "${HADOOP_HOME}" ]]; then
     [[ -f "/tmp/${HADOOP_TGZ}" ]] || curl -fkSL "${HADOOP_TARBALL_URL}" -o /tmp/${HADOOP_TGZ}
-    sudo tar --no-same-owner -xzf "/tmp/${HADOOP_TGZ}" -C /tmp
+    tar -xzf "/tmp/${HADOOP_TGZ}" -C /tmp
     sudo mv -f /tmp/hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
-    sudo cp -f ${PROJECT_DIR}/${HADOOP_CONF_DIR#/*/}/* ${HADOOP_CONF_DIR}/
+    sudo cp -f "${PROJECT_DIR}/${HADOOP_CONF_DIR#/*/}"/* ${HADOOP_CONF_DIR}/
     sudo sed -i \
         -e "s|{{JAVA_HOME}}|${JAVA_HOME}|g" \
         -e "s|{{HADOOP_LOG_DIR}}|${HADOOP_LOG_DIR}|g" \
         -e "s|{{HADOOP_PID_DIR}}|${HADOOP_PID_DIR}|g" \
         "${HADOOP_CONF_DIR}/hadoop-env.sh"
+    sudo sed -i -e "s|{{HADOOP_HOME}}|${HADOOP_HOME}|g" "${HADOOP_CONF_DIR}/mapred-site.xml"
     echo "localhost" | sudo tee "${HADOOP_CONF_DIR}/workers"
-    sudo cp -f ${PROJECT_DIR}/${HADOOP_SBIN_DIR#/*/}/* ${HADOOP_SBIN_DIR}/
-    sudo cp -rf ${PROJECT_DIR}/${HADOOP_SYSTEMD_DIR#/*/} ${HADOOP_SYSTEMD_DIR}
+    sudo cp -f "${PROJECT_DIR}/${HADOOP_SBIN_DIR#/*/}"/* ${HADOOP_SBIN_DIR}/
+    sudo cp -rf "${PROJECT_DIR}/${HADOOP_SYSTEMD_DIR#/*/}" ${HADOOP_SYSTEMD_DIR}
     sudo sed -i -e "s|{{HADOOP_HOME}}|${HADOOP_HOME}|g" "${HADOOP_SYSTEMD_DIR}/${HADOOP_SERVICE}"
+    sudo chown -R root:${SUPER_USER_GROUP} ${HADOOP_HOME}
 fi
 
 ITEMS=("DATA" "LOG")
@@ -123,7 +125,7 @@ for ITEM in "${ITEMS[@]}"; do
     if [[ ! -d "${!DIR}" ]]; then
         sudo mkdir -p "${!DIR}"
         sudo chgrp ${SUPER_USER_GROUP} "${!DIR}"
-        sudo chmod 775 "${!DIR}"
+        sudo chmod 1775 "${!DIR}"
     fi
 done
 
@@ -132,7 +134,7 @@ for ACCOUNT in "${HADOOP_ACCOUNTS[@]}"; do
     if ! getent passwd "$ACCOUNT" > /dev/null 2>&1; then
         sudo useradd -G ${SUPER_USER_GROUP} -r -m -d "/home/$ACCOUNT" "$ACCOUNT"
         uuidgen | sudo -u $ACCOUNT tee "/home/$ACCOUNT/hadoop-http-auth-signature-secret"
-        sudo -u "$ACCOUNT" chmod 600 "/home/$ACCOUNT/hadoop-http-auth-signature-secret"
+        sudo -u "$ACCOUNT" chmod 0600 "/home/$ACCOUNT/hadoop-http-auth-signature-secret"
     fi
 done
 
@@ -196,17 +198,18 @@ SPARK_TGZ="spark-${SPARK_VERSION}-bin-hadoop3-scala${SCALA_VERSION}.tgz"
 SPARK_TARBALL_URL="https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_TGZ}"
 if [[ ! -d "${SPARK_HOME}" ]]; then
     [[ -f "/tmp/${SPARK_TGZ}" ]] || curl -fkSL "${SPARK_TARBALL_URL}" -o /tmp/${SPARK_TGZ}
-    sudo tar --no-same-owner -xzf "/tmp/${SPARK_TGZ}" -C /tmp
+    tar -xzf "/tmp/${SPARK_TGZ}" -C /tmp
     sudo mv -f /tmp/spark-${SPARK_VERSION}-bin-hadoop3-scala${SCALA_VERSION} ${SPARK_HOME}
-    sudo cp -f ${PROJECT_DIR}/${SPARK_CONF_DIR#/*/}/* ${SPARK_CONF_DIR}/
+    sudo cp -f "${PROJECT_DIR}/${SPARK_CONF_DIR#/*/}"/* ${SPARK_CONF_DIR}/
     sudo sed -i \
         -e "s|{{HADOOP_NATIVE_LID_DIR}}|${HADOOP_NATIVE_LID_DIR}|g" \
         -e "s|{{HADOOP_CONF_DIR}}|${HADOOP_CONF_DIR}|g" \
         -e "s|{{SPARK_LOG_DIR}}|${SPARK_LOG_DIR}|g" \
         -e "s|{{SPARK_PID_DIR}}|${SPARK_PID_DIR}|g" \
         "${SPARK_CONF_DIR}/spark-env.sh"
-    sudo cp -rf ${PROJECT_DIR}/${SPARK_SYSTEMD_DIR#/*/} ${SPARK_SYSTEMD_DIR}
+    sudo cp -rf "${PROJECT_DIR}/${SPARK_SYSTEMD_DIR#/*/}" ${SPARK_SYSTEMD_DIR}
     sudo sed -i -e "s|{{SPARK_HOME}}|${SPARK_HOME}|g" "${SPARK_SYSTEMD_DIR}/${SPARK_HISTORYSERVER_SERVICE}"
+    sudo chown -R root:${SUPER_USER_GROUP} ${SPARK_HOME}
 fi
 
 ITEMS=("LOG" "PID")
@@ -215,7 +218,7 @@ for ITEM in "${ITEMS[@]}"; do
     if [[ ! -d "${!DIR}" ]]; then
         sudo mkdir -p "${!DIR}"
         sudo chgrp ${SUPER_USER_GROUP} "${!DIR}"
-        sudo chmod 775 "${!DIR}"
+        sudo chmod 1775 "${!DIR}"
     fi
 done
 
@@ -223,13 +226,15 @@ if ! getent passwd spark > /dev/null 2>&1; then
     sudo useradd -G ${SUPER_USER_GROUP} -r -m -d /home/spark spark
 fi
 
+${HADOOP_HOME}/bin/hdfs dfs -ls /shared > /dev/null 2>&1 || ( \
+    sudo -u hdfs ${HADOOP_HOME}/bin/hdfs dfs -mkdir /shared && \
+    sudo -u hdfs ${HADOOP_HOME}/bin/hdfs dfs -chmod 1775 /shared \
+)
 ${HADOOP_HOME}/bin/hdfs dfs -ls /shared/spark-logs > /dev/null 2>&1 || ( \
-    sudo -u hdfs ${HADOOP_HOME}/bin/hdfs dfs -mkdir -p /shared/spark-logs && \
-    sudo -u hdfs ${HADOOP_HOME}/bin/hdfs dfs -chown spark:${SUPER_USER_GROUP} /shared/spark-logs && \
-    sudo -u hdfs ${HADOOP_HOME}/bin/hdfs dfs -chmod 775 /shared/spark-logs \
+    sudo -u spark ${HADOOP_HOME}/bin/hdfs dfs -mkdir /shared/spark-logs \
 )
 ${HADOOP_HOME}/bin/hdfs dfs -ls /shared/spark-dist > /dev/null 2>&1 || ( \
-    sudo -u spark ${HADOOP_HOME}/bin/hdfs dfs -mkdir -p /shared/spark-dist && \
+    sudo -u spark ${HADOOP_HOME}/bin/hdfs dfs -mkdir /shared/spark-dist && \
     sudo -u spark ${HADOOP_HOME}/bin/hdfs dfs -put ${SPARK_HOME}/jars /shared/spark-dist/ \
 )
 
@@ -253,9 +258,10 @@ PIG_TGZ="pig-${PIG_VERSION}.tar.gz"
 PIG_TARBALL_URL="https://archive.apache.org/dist/pig/pig-${PIG_VERSION}/${PIG_TGZ}"
 if [[ ! -d "${PIG_HOME}" ]]; then
     [[ -f "/tmp/${PIG_TGZ}" ]] || curl -fkSL "${PIG_TARBALL_URL}" -o /tmp/${PIG_TGZ}
-    sudo tar --no-same-owner -xzf "/tmp/${PIG_TGZ}" -C /tmp
+    tar -xzf "/tmp/${PIG_TGZ}" -C /tmp
     sudo mv -f /tmp/pig-${PIG_VERSION} ${PIG_HOME}
     sudo sed -i -e "s|^pig\.ats\.enabled=true|pig.ats.enabled=false|g" "${PIG_CONF_DIR}/pig.properties"
+    sudo chown -R root:${SUPER_USER_GROUP} ${PIG_HOME}
 fi
 
 echo | tee -a "${PROJECT_DIR}/${ENV_FILE}" > /dev/null
@@ -290,16 +296,17 @@ KAFKA_TGZ="kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz"
 KAFKA_TARBALL_URL="https://archive.apache.org/dist/kafka/${KAFKA_VERSION}/${KAFKA_TGZ}"
 if [[ ! -d "${KAFKA_HOME}" ]]; then
     [[ -f "/tmp/${KAFKA_TGZ}" ]] || curl -fkSL "${KAFKA_TARBALL_URL}" -o /tmp/${KAFKA_TGZ}
-    sudo tar --no-same-owner -xzf "/tmp/${KAFKA_TGZ}" -C /tmp
+    tar -xzf "/tmp/${KAFKA_TGZ}" -C /tmp
     sudo mv -f /tmp/kafka_${SCALA_VERSION}-${KAFKA_VERSION} ${KAFKA_HOME}
-    sudo cp -rf ${PROJECT_DIR}/${KAFKA_CONF_DIR#/*/}/* ${KAFKA_CONF_DIR}/
+    sudo cp -rf "${PROJECT_DIR}/${KAFKA_CONF_DIR#/*/}"/* ${KAFKA_CONF_DIR}/
     sudo sed -i -e "s|{{KAFKA_DATA_DIR}}|${KAFKA_DATA_DIR}|g" "${KAFKA_CONF_FILE}"
-    sudo cp -rf ${PROJECT_DIR}/${KAFKA_SYSTEMD_DIR#/*/} ${KAFKA_SYSTEMD_DIR}
+    sudo cp -rf "${PROJECT_DIR}/${KAFKA_SYSTEMD_DIR#/*/}" ${KAFKA_SYSTEMD_DIR}
     sudo sed -i \
         -e "s|{{KAFKA_HOME}}|${KAFKA_HOME}|g" \
         -e "s|{{KAFKA_LOG_DIR}}|${KAFKA_LOG_DIR}|g" \
         -e "s|{{KAFKA_CONF_FILE}}|${KAFKA_CONF_FILE}|g" \
         "${KAFKA_SYSTEMD_DIR}/kafka.service"
+    sudo chown -R root:${SUPER_USER_GROUP} ${KAFKA_HOME}
 fi
 
 ITEMS=("DATA" "LOG")
@@ -308,7 +315,7 @@ for ITEM in "${ITEMS[@]}"; do
     if [[ ! -d "${!DIR}" ]]; then
         sudo mkdir -p "${!DIR}"
         sudo chgrp ${SUPER_USER_GROUP} "${!DIR}"
-        sudo chmod 775 "${!DIR}"
+        sudo chmod 1775 "${!DIR}"
     fi
 done
 
