@@ -31,8 +31,6 @@ fi
 
 ARCH=$(dpkg --print-architecture)
 PROJECT_DIR=$(realpath "$(dirname "$0")")
-ENV_FILE=".big-data.lab.env"
-truncate -s 0 "${PROJECT_DIR}/${ENV_FILE}"
 
 NP_SUDOERS=/etc/sudoers.d/nopasswd
 NP_ENTRY="$USER ALL=(ALL) NOPASSWD: ALL"
@@ -43,6 +41,15 @@ fi
 if ! sudo grep -qxF "${NP_ENTRY}" "${NP_SUDOERS}"; then
     echo "${NP_ENTRY}" | sudo tee -a "${NP_SUDOERS}" > /dev/null
 fi
+
+HOSTS_ENTRY="127.0.0.1 $HOSTNAME"
+if ! grep -qxF "${HOSTS_ENTRY}" "/etc/hosts"; then
+    echo | sudo tee -a "/etc/hosts" > /dev/null
+    echo "${HOSTS_ENTRY}" | sudo tee -a "/etc/hosts" > /dev/null
+fi
+
+ENV_FILE=".big-data.lab.env"
+truncate -s 0 "${PROJECT_DIR}/${ENV_FILE}"
 
 
 #---
