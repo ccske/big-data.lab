@@ -9,11 +9,11 @@ It is designed for **teachers and students** as an educational tool, while **uni
 ---
 
 ## Features
-- Hadoop 3.4.0 (HDFS, YARN, MapReduce)
-- Spark 3.5.7 (History Server)
-- Pig 0.18.0
-- Kafka 3.9.1 (KRaft mode)
-- MySQL 8
+- **Hadoop 3.4.0** (HDFS, YARN, MapReduce, JobHistoryServer)
+- **Spark 3.5.7** (YARN client mode, History Server)
+- **Pig 0.18.0**
+- **Kafka 3.9.1** (KRaft mode)
+- Automated setup script: `ubuntu-vm-setup.sh` installs and configures all components.
 
 ---
 
@@ -59,12 +59,12 @@ big-data.lab
 
 ---
 
-## Quick Setup on Ubuntu Virtual Machine (Recommended)
+## Quick Setup on Ubuntu Virtual Machine
 
 The system relies on `ubuntu-vm-setup.sh` to automate everything. Follow these steps:
 
 ### Prerequisites
-- Ubuntu Linux VM (24.04 or later)
+- Ubuntu Linux 24.04+ virtual machine (2+ CPUs and 4+ GB RAM)
 - Internet access for downloading packages and Apache tarballs
 
 ### Steps
@@ -97,6 +97,11 @@ Replace `<VM_IP>` and `<VM_HOSTNAME>` with the IP address and the hostname of yo
 ```
 
 ---
+
+## Service Management
+- Hadoop: `systemctl start|stop|restart hadoop.service`
+- Spark History Server: `systemctl start|stop|restart spark-historyserver.service`
+- Kafka: `systemctl start|stop|restart kafka.service`
 
 ## Big Data Client Usage
 After setup, you can use multiple tools provided by the ecosystem. Ensure you have sourced the environment file (`.big-data.lab.env`) created by the setup script.
