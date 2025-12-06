@@ -1,17 +1,28 @@
 [Unit]
-Description=Apache Kafka (KRaft Mode)
-After=network.target
+Description=Apache Kafka (KRaft mode) Broker
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
-User=kafka
-Group=kafka
+User={{KAFKA_USER}}
+Group={{KAFKA_GROUP}}
 Environment="LOG_DIR={{KAFKA_LOG_DIR}}"
-ExecStart={{KAFKA_HOME}}/bin/kafka-server-start.sh {{KAFKA_CONF_FILE}}
+ExecStart={{KAFKA_HOME}}/bin/kafka-server-start.sh {{KRAFT_CONF_FILE}}
 ExecStop={{KAFKA_HOME}}/bin/kafka-server-stop.sh
 StandardOutput=journal
-StandardError=journal
+StandardError=inherit
+SyslogIdentifier={{KAFKA_USER}}
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=120
+TimeoutStopSec=120
+LimitNOFILE=65536
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
 
 [Install]
 WantedBy=multi-user.target
-

@@ -1,0 +1,8 @@
+[Unit]
+Description=Apache Hadoop Stack (HDFS + YARN + MapReduce)
+After=network-online.target
+Wants=hadoop-namenode.service hadoop-datanode.service hadoop-resourcemanager.service hadoop-nodemanager.service hadoop-historyserver.service
+
+[Install]
+WantedBy=multi-user.target
+

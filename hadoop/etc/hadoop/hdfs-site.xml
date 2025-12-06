@@ -12,6 +12,10 @@
     <value>file://${hadoop.tmp.dir}/dfs/name,file://${hadoop.tmp.dir}/dfs/name.redundant</value>
   </property>
   <property>
+    <name>dfs.permissions.superusergroup</name>
+    <value>hadoop</value>
+  </property>
+  <property>
     <name>dfs.replication</name>
     <value>1</value>
   </property>

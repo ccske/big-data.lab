@@ -1,0 +1,27 @@
+[Unit]
+Description=Apache Hadoop YARN NodeManager
+After=network-online.target hadoop-resourcemanager.service
+Wants=network-online.target hadoop-resourcemanager.service
+PartOf=hadoop.target
+
+[Service]
+Type=forking
+User={{YARN_USER}}
+Group={{HADOOP_GROUP}}
+ExecStart={{HADOOP_HOME}}/bin/yarn --daemon start nodemanager
+ExecStop={{HADOOP_HOME}}/bin/yarn --daemon stop nodemanager
+PIDFile={{HADOOP_PID_DIR}}/hadoop-{{YARN_USER}}-nodemanager.pid
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=120
+TimeoutStopSec=120
+LimitNOFILE=65536
+KillMode=process
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

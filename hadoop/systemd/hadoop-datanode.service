@@ -1,0 +1,27 @@
+[Unit]
+Description=Apache Hadoop HDFS DataNode
+After=network-online.target hadoop-namenode.service
+Wants=network-online.target hadoop-namenode.service
+PartOf=hadoop.target
+
+[Service]
+Type=forking
+User={{HDFS_USER}}
+Group={{HADOOP_GROUP}}
+ExecStart={{HADOOP_HOME}}/bin/hdfs --daemon start datanode
+ExecStop={{HADOOP_HOME}}/bin/hdfs --daemon stop datanode
+PIDFile={{HADOOP_PID_DIR}}/hadoop-{{HDFS_USER}}-datanode.pid
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=120
+TimeoutStopSec=120
+LimitNOFILE=65536
+KillMode=process
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

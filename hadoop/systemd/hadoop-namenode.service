@@ -1,0 +1,27 @@
+[Unit]
+Description=Apache Hadoop NameNode Service
+After=network-online.target
+Wants=network-online.target
+PartOf=hadoop.target
+
+[Service]
+Type=forking
+User={{HDFS_USER}}
+Group={{HADOOP_GROUP}}
+ExecStart={{HADOOP_HOME}}/bin/hdfs --daemon start namenode
+ExecStop={{HADOOP_HOME}}/bin/hdfs --daemon stop namenode
+PIDFile={{HADOOP_PID_DIR}}/hadoop-{{HDFS_USER}}-namenode.pid
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=120
+TimeoutStopSec=120
+LimitNOFILE=65536
+KillMode=process
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

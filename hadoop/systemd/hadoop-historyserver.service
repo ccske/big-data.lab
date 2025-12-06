@@ -1,0 +1,27 @@
+[Unit]
+Description=Apache Hadoop MapReduce JobHistoryServer
+After=network-online.target hadoop-namenode.service hadoop-resourcemanager.service
+Wants=network-online.target hadoop-namenode.service hadoop-resourcemanager.service
+PartOf=hadoop.target
+
+[Service]
+Type=forking
+User={{MAPRED_USER}}
+Group={{HADOOP_GROUP}}
+ExecStart={{HADOOP_HOME}}/bin/mapred --daemon start historyserver
+ExecStop={{HADOOP_HOME}}/bin/mapred --daemon stop historyserver
+PIDFile={{HADOOP_PID_DIR}}/hadoop-{{MAPRED_USER}}-historyserver.pid
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=120
+TimeoutStopSec=120
+LimitNOFILE=65536
+KillMode=process
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target
