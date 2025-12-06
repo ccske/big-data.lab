@@ -2,7 +2,7 @@
 
 A lightweight Hadoop ecosystem on Ubuntu Linux virtual machine for educational and research purposes.
 
-This project now includes Hadoop, Spark, Pig, Kafka, and MySQL components, providing a complete big data lab environment for classroom teaching and student practice.
+This project now includes Hadoop, Spark, Pig, Kafka, and MySQL components, providing a complete big-data lab environment for classroom teaching and student practice.
 
 It is designed for **teachers and students** as an educational tool, while **universities and institutions** can obtain commercial licenses for classroom or production use.
 
@@ -35,7 +35,12 @@ big-data.lab
 │   │   ├── start-hadoop.sh
 │   │   └── stop-hadoop.sh
 │   └── systemd
-│       └── hadoop.service
+│       ├── hadoop-datanode.service
+│       ├── hadoop-historyserver.service
+│       ├── hadoop-namenode.service
+│       ├── hadoop-nodemanager.service
+│       ├── hadoop-resourcemanager.service
+│       └── hadoop.target
 ├── kafka
 │   ├── config
 │   │   └── kraft
@@ -64,7 +69,7 @@ big-data.lab
 The system relies on `ubuntu-vm-setup.sh` to automate everything. Follow these steps:
 
 ### Prerequisites
-- Ubuntu Linux 24.04+ virtual machine (2+ CPUs and 4+ GB RAM)
+- Ubuntu Linux 24.04+ virtual machine (2+ CPUs, 4+ GB RAM, and 20+ GB Disk)
 - Internet access for downloading packages and Apache tarballs
 
 ### Steps
@@ -84,7 +89,7 @@ The system relies on `ubuntu-vm-setup.sh` to automate everything. Follow these s
 4. After reboot, the Hadoop ecosystem will be running in the background. Access the web UIs from the VM browser:
    - **HDFS NameNode**: http://localhost:9870
    - **YARN ResourceManager**: http://localhost:8088
-   - **MapReduce JobHistory**: http://localhost:19888
+   - **MapReduce JobHistoryServer**: http://localhost:19888
    - **Spark History Server**: http://localhost:18080
 
 To access UIs from outside the VM, add this to your system hosts file:
@@ -99,7 +104,7 @@ Replace `<VM_IP>` and `<VM_HOSTNAME>` with the IP address and the hostname of yo
 ---
 
 ## Service Management
-- Hadoop: `systemctl start|stop|restart hadoop.service`
+- Hadoop: `systemctl start|stop|restart hadoop.target`
 - Spark History Server: `systemctl start|stop|restart spark-historyserver.service`
 - Kafka: `systemctl start|stop|restart kafka.service`
 
