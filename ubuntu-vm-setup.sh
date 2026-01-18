@@ -167,7 +167,7 @@ if [[ ! -d "${HADOOP_HOME}" ]]; then
 fi
 
 
-SPARK_VERSION=3.5.7
+SPARK_VERSION=3.5.8
 SCALA_VERSION=2.13
 echo "Set up Apache Spark v${SPARK_VERSION} (built with Scala v${SCALA_VERSION}) in client mode on YARN..."
 SPARK_HOME=/opt/spark

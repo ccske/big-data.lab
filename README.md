@@ -10,7 +10,7 @@ It is designed for **teachers and students** as an educational tool, while **uni
 
 ## Features
 - **Hadoop 3.4.0** (HDFS, YARN, MapReduce, JobHistoryServer)
-- **Spark 3.5.7** (YARN client mode, History Server)
+- **Spark 3.5.8** (YARN client mode, History Server)
 - **Pig 0.18.0**
 - **Kafka 3.9.1** (KRaft mode)
 - Automated setup script: `ubuntu-vm-setup.sh` installs and configures all components.
