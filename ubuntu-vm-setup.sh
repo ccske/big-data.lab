@@ -62,6 +62,10 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl mysq
 
 JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(which java)")")")"
 
+OPT_TMP_DIR=/opt/tmp
+sudo mkdir -p ${OPT_TMP_DIR}
+sudo chmod 1777 ${OPT_TMP_DIR}
+
 HADOOP_VERSION=3.4.0
 echo "Set up Apache Hadoop v${HADOOP_VERSION} ($ARCH) in single-machine fully-distributed mode..."
 HADOOP_HOME=/opt/hadoop
@@ -109,9 +113,9 @@ if [[ ! -d "${HADOOP_HOME}" ]]; then
             ;;
     esac
     HADOOP_TARBALL_URL="https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/${HADOOP_TGZ}"
-    [[ -f "/tmp/${HADOOP_TGZ}" ]] || curl -fkSL "${HADOOP_TARBALL_URL}" -o /tmp/${HADOOP_TGZ}
-    sudo tar -xzf "/tmp/${HADOOP_TGZ}" --no-same-owner -C /tmp
-    sudo mv -f /tmp/hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
+    [[ -f "${OPT_TMP_DIR}/${HADOOP_TGZ}" ]] || curl -fkSL "${HADOOP_TARBALL_URL}" -o ${OPT_TMP_DIR}/${HADOOP_TGZ}
+    sudo tar -xzf "${OPT_TMP_DIR}/${HADOOP_TGZ}" --no-same-owner -C ${OPT_TMP_DIR}
+    sudo mv -f ${OPT_TMP_DIR}/hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
 
     sudo install -o ${HADOOP_USER} -g ${HADOOP_GROUP} -m 0775 -d ${HADOOP_DATA_DIR} ${HADOOP_LOG_DIR}
 
@@ -193,9 +197,9 @@ if [[ ! -d "${SPARK_HOME}" ]]; then
 
     SPARK_TGZ="spark-${SPARK_VERSION}-bin-hadoop3-scala${SCALA_VERSION}.tgz"
     SPARK_TARBALL_URL="https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_TGZ}"
-    [[ -f "/tmp/${SPARK_TGZ}" ]] || curl -fkSL "${SPARK_TARBALL_URL}" -o /tmp/${SPARK_TGZ}
-    sudo tar -xzf "/tmp/${SPARK_TGZ}" --no-same-owner -C /tmp
-    sudo mv -f /tmp/spark-${SPARK_VERSION}-bin-hadoop3-scala${SCALA_VERSION} ${SPARK_HOME}
+    [[ -f "${OPT_TMP_DIR}/${SPARK_TGZ}" ]] || curl -fkSL "${SPARK_TARBALL_URL}" -o ${OPT_TMP_DIR}/${SPARK_TGZ}
+    sudo tar -xzf "${OPT_TMP_DIR}/${SPARK_TGZ}" --no-same-owner -C ${OPT_TMP_DIR}
+    sudo mv -f ${OPT_TMP_DIR}/spark-${SPARK_VERSION}-bin-hadoop3-scala${SCALA_VERSION} ${SPARK_HOME}
 
     sudo install -o ${SPARK_USER} -g ${SPARK_GROUP} -m 0755 -d ${SPARK_LOG_DIR} ${SPARK_PID_DIR}
 
@@ -244,9 +248,9 @@ PIG_CONF_DIR=${PIG_HOME}/conf
 if [[ ! -d "${PIG_HOME}" ]]; then
     PIG_TGZ="pig-${PIG_VERSION}.tar.gz"
     PIG_TARBALL_URL="https://archive.apache.org/dist/pig/pig-${PIG_VERSION}/${PIG_TGZ}"
-    [[ -f "/tmp/${PIG_TGZ}" ]] || curl -fkSL "${PIG_TARBALL_URL}" -o /tmp/${PIG_TGZ}
-    sudo tar -xzf "/tmp/${PIG_TGZ}" --no-same-owner -C /tmp
-    sudo mv -f /tmp/pig-${PIG_VERSION} ${PIG_HOME}
+    [[ -f "${OPT_TMP_DIR}/${PIG_TGZ}" ]] || curl -fkSL "${PIG_TARBALL_URL}" -o ${OPT_TMP_DIR}/${PIG_TGZ}
+    sudo tar -xzf "${OPT_TMP_DIR}/${PIG_TGZ}" --no-same-owner -C ${OPT_TMP_DIR}
+    sudo mv -f ${OPT_TMP_DIR}/pig-${PIG_VERSION} ${PIG_HOME}
     sudo install -m 0644 -t ${PIG_CONF_DIR} "${PROJECT_DIR}/${PIG_CONF_DIR#/*/}/pig.properties"
 fi
 
@@ -276,9 +280,9 @@ if [[ ! -d "${KAFKA_HOME}" ]]; then
 
     KAFKA_TGZ="kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz"
     KAFKA_TARBALL_URL="https://archive.apache.org/dist/kafka/${KAFKA_VERSION}/${KAFKA_TGZ}"
-    [[ -f "/tmp/${KAFKA_TGZ}" ]] || curl -fkSL "${KAFKA_TARBALL_URL}" -o /tmp/${KAFKA_TGZ}
-    sudo tar -xzf "/tmp/${KAFKA_TGZ}" --no-same-owner -C /tmp
-    sudo mv -f /tmp/kafka_${SCALA_VERSION}-${KAFKA_VERSION} ${KAFKA_HOME}
+    [[ -f "${OPT_TMP_DIR}/${KAFKA_TGZ}" ]] || curl -fkSL "${KAFKA_TARBALL_URL}" -o ${OPT_TMP_DIR}/${KAFKA_TGZ}
+    sudo tar -xzf "${OPT_TMP_DIR}/${KAFKA_TGZ}" --no-same-owner -C ${OPT_TMP_DIR}
+    sudo mv -f ${OPT_TMP_DIR}/kafka_${SCALA_VERSION}-${KAFKA_VERSION} ${KAFKA_HOME}
 
     sudo install -o ${KAFKA_USER} -g ${KAFKA_GROUP} -m 0755 -d ${KAFKA_DATA_DIR} ${KAFKA_LOG_DIR}
 
@@ -345,6 +349,7 @@ if ! grep -qxF "    . ~/${ENV_FILE}" "$HOME/.bashrc"; then
         tee -a "$HOME/.bashrc" > /dev/null
 fi
 
+
 echo
-echo ">>> Set up big-data.lab successfully! You may reboot the system to apply all changes."
+echo ">>> Set up big-data.lab successfully! You may delete the tarballs in ${OPT_TMP_DIR} to free disk space and reboot the system to apply all changes."
 echo
