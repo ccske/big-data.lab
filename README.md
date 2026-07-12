@@ -69,7 +69,7 @@ big-data.lab
 The system relies on `ubuntu-vm-setup.sh` to automate everything. Follow these steps:
 
 ### Prerequisites
-- Ubuntu Linux 24.04+ virtual machine (2+ CPUs, 4+ GB RAM, and 20+ GB Disk)
+- Ubuntu Linux 24.04 virtual machine (2+ CPUs, 4+ GB RAM, and 20+ GB Disk)
 - Internet access for downloading packages and Apache tarballs
 
 ### Steps
@@ -123,7 +123,7 @@ hdfs dfs -cat /data/localfile.txt
 Submit a Spark job to YARN:
 ```bash
 ${SPARK_HOME}/bin/spark-shell --master yarn
-${SPARK_HOME}/bin/spark-submit --master yarn --deploy-mode client examples/src/main/python/pi.py 10
+${SPARK_HOME}/bin/spark-submit --master yarn --deploy-mode client ${SPARK_HOME}/examples/src/main/python/pi.py 10
 ```
 
 #### Pig
